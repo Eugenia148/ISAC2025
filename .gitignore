@@ -1,0 +1,15 @@
+# Archivos y carpetas de Python
+__pycache__/
+*.pyc
+
+# Checkpoints automáticos de Jupyter
+.ipynb_checkpoints/
+
+# Datos o archivos grandes
+data/
+
+# Variables de entorno o credenciales
+.env
+
+# Archivos temporales del sistema
+.DS_Store

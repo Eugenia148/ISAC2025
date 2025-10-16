@@ -13,3 +13,5 @@ data/
 
 # Archivos temporales del sistema
 .DS_Store
+
+.streamlit/secrets.toml

@@ -8,6 +8,8 @@ from typing import Optional, Dict, List
 from dotenv import load_dotenv
 from statsbombpy import sb
 import warnings
+import requests
+from requests.auth import HTTPBasicAuth
 
 # Load environment variables once
 load_dotenv()
@@ -80,6 +82,36 @@ class StatsBombClient:
             print(f"Error fetching player season stats: {e}")
             return None
     
+    def player_mapping(self, competition_id: int, season_id: int):
+        """Get player mapping data for a specific competition and season via direct API call."""
+        try:
+            # API endpoint for player mapping
+            url = "https://data.statsbomb.com/api/v1/player-mapping"
+            
+            # Query parameters
+            params = {
+                'competition-id': competition_id,
+                'season-id': season_id
+            }
+            
+            # Make request with or without credentials
+            if self.has_credentials:
+                auth = HTTPBasicAuth(self.username, self.password)
+                response = requests.get(url, params=params, auth=auth)
+            else:
+                response = requests.get(url, params=params)
+            
+            # Check if request was successful
+            if response.status_code == 200:
+                return response.json()
+            else:
+                print(f"Player mapping API request failed with status {response.status_code}")
+                return None
+                
+        except Exception as e:
+            print(f"Error fetching player mapping: {e}")
+            return None
+    
     def get_status(self) -> Dict[str, any]:
         """Get API connection status."""
         try:
@@ -115,6 +147,10 @@ def get_matches(competition_id: int, season_id: int):
 def get_player_season_stats(competition_id: int, season_id: int):
     """Get player season stats."""
     return client.player_season_stats(competition_id, season_id)
+
+def get_player_mapping(competition_id: int, season_id: int):
+    """Get player mapping data."""
+    return client.player_mapping(competition_id, season_id)
 
 def get_status():
     """Get API status."""

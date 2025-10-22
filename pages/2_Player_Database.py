@@ -10,6 +10,8 @@ Falls back to team-level data when player stats are not provided by the API.
 import streamlit as st
 from api.client import client
 import pandas as pd
+from core.profiles.service import get_service
+from ui.components.radar import render_tactical_profile_panel
 
 # Page configuration
 st.set_page_config(
@@ -390,6 +392,8 @@ if computed_data is not None and computed_data.get('rows'):
             selected_player = filtered_rows[selected_idx]
             player_id = selected_player.get('player_id')
             player_name = selected_player.get('Player')
+            team_name = selected_player.get('Team')
+            position = selected_player.get('Position')
             
             st.subheader(f"Actions for {player_name}")
             
@@ -399,7 +403,8 @@ if computed_data is not None and computed_data.get('rows'):
                     # Store player_id in session state for navigation
                     st.session_state['selected_player_id'] = player_id
                     st.session_state['selected_player_name'] = player_name
-                    st.info("🚧 Tactical Profile page coming soon! Player ID stored in session state.")
+                    st.session_state['selected_player_team'] = team_name
+                    st.session_state['selected_player_position'] = position
             
             with col2:
                 if st.button("⚖️ Compare Players", type="secondary"):
@@ -407,6 +412,36 @@ if computed_data is not None and computed_data.get('rows'):
                     st.session_state['compare_player_id'] = player_id
                     st.session_state['compare_player_name'] = player_name
                     st.info("🚧 Player Compare page coming soon! Player ID stored in session state.")
+            
+            # Show tactical profile if available
+            if st.session_state.get('selected_player_id') == player_id:
+                st.divider()
+                
+                # Get tactical profile service
+                service = get_service()
+                
+                # Check if player is a striker
+                primary_position = position.split(' / ')[0] if position else None
+                secondary_position = position.split(' / ')[1] if ' / ' in position else None
+                
+                if service.is_striker(primary_position, secondary_position):
+                    # Build striker profile
+                    profile = service.build_striker_profile(
+                        player_id=str(player_id),
+                        player_name=player_name,
+                        team_name=team_name,
+                        primary_position=primary_position,
+                        secondary_position=secondary_position,
+                        season=selected_season
+                    )
+                    
+                    if profile:
+                        # Render tactical profile panel
+                        render_tactical_profile_panel(profile)
+                    else:
+                        st.warning(f"⚠️ No tactical profile data available for {player_name}. Player may not have sufficient data for analysis.")
+                else:
+                    st.info(f"ℹ️ Tactical profiles are currently only available for strikers (Centre Forward, Left Centre Forward, Right Centre Forward). {player_name} plays as {primary_position}.")
     else:
         st.warning("No players match the current filters.")
 

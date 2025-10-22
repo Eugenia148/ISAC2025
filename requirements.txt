@@ -1,6 +1,6 @@
 statsbombpy
 python-dotenv
-pandas
+pandas>=2.0
 numpy
 matplotlib
 seaborn
@@ -8,3 +8,5 @@ scikit-learn
 pyarrow
 streamlit
 requests
+plotly>=5.20
+kaleido>=0.2

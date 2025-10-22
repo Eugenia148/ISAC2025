@@ -11,7 +11,9 @@ import streamlit as st
 from api.client import client
 import pandas as pd
 from core.profiles.service import get_service
+from core.performance.service import get_performance_service
 from ui.components.radar import render_tactical_profile_panel
+from ui.components.performance_radar import render_performance_profile_panel
 
 # Page configuration
 st.set_page_config(
@@ -141,6 +143,9 @@ def feature_compute_rows(payload: dict) -> dict | None:
         # Calculate total goals and assists from per-90 stats
         total_goals = round(goals_90 * minutes / 90) if minutes > 0 else 0
         total_assists = round(assists_90 * minutes / 90) if minutes > 0 else 0
+        
+        # Round minutes to nearest full minute
+        minutes = int(round(minutes)) if minutes > 0 else 0
         
         # Position display
         if secondary_position and secondary_position != '—':
@@ -394,6 +399,12 @@ if computed_data is not None and computed_data.get('rows'):
             player_name = selected_player.get('Player')
             team_name = selected_player.get('Team')
             position = selected_player.get('Position')
+            minutes = selected_player.get('Minutes', 0)
+            appearances = selected_player.get('Appearances', 0)
+            goals = selected_player.get('Goals', 0)
+            assists = selected_player.get('Assists', 0)
+            foot = selected_player.get('Foot', '—')
+            age = selected_player.get('Age', '—')
             
             st.subheader(f"Actions for {player_name}")
             
@@ -425,19 +436,55 @@ if computed_data is not None and computed_data.get('rows'):
                 secondary_position = position.split(' / ')[1] if ' / ' in position else None
                 
                 if service.is_striker(primary_position, secondary_position):
-                    # Build striker profile
+                    # Build striker profile for the selected season
                     profile = service.build_striker_profile(
                         player_id=str(player_id),
                         player_name=player_name,
                         team_name=team_name,
                         primary_position=primary_position,
                         secondary_position=secondary_position,
-                        season=selected_season
+                        season=selected_season,
+                        # Additional stats
+                        minutes=minutes,
+                        appearances=appearances,
+                        goals=goals,
+                        assists=assists,
+                        foot=foot,
+                        age=age
                     )
                     
                     if profile:
-                        # Render tactical profile panel
-                        render_tactical_profile_panel(profile)
+                        # Create tabs for tactical and performance profiles
+                        tab1, tab2 = st.tabs(["🎯 Tactical Profile", "📊 Performance Profile"])
+                        
+                        with tab1:
+                            # Render tactical profile panel
+                            render_tactical_profile_panel(profile)
+                        
+                        with tab2:
+                            # Get performance profile service with season-specific loader
+                            performance_service = get_performance_service()
+                            season_id = performance_service._extract_season_id(selected_season)
+                            
+                            # Re-initialize service with season-specific loader
+                            performance_service = get_performance_service(season_id=season_id)
+                            
+                            # Build performance profile for the selected season
+                            performance_profile = performance_service.build_performance_profile(
+                                player_id=str(player_id),
+                                player_name=player_name,
+                                team_name=team_name,
+                                primary_position=primary_position,
+                                secondary_position=secondary_position,
+                                season=selected_season,
+                                minutes=minutes
+                            )
+                            
+                            if performance_profile:
+                                # Render performance profile panel
+                                render_performance_profile_panel(performance_profile)
+                            else:
+                                st.warning(f"⚠️ No performance profile data available for {player_name}. Player may not have sufficient data for analysis.")
                     else:
                         st.warning(f"⚠️ No tactical profile data available for {player_name}. Player may not have sufficient data for analysis.")
                 else:

@@ -209,10 +209,11 @@ def render_tactical_profile_header(profile_data: Dict[str, Any]) -> None:
     team_name = profile_data.get("team_name", "Unknown Team")
     position = profile_data.get("position", "Striker")
     season = profile_data.get("season", "2024/25")
+    stats = profile_data.get("stats", {})
     
     st.subheader(f"🎯 Tactical Profile — {player_name}")
     
-    # Create chips for player info
+    # Create chips for player info - expanded to show more stats
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
@@ -238,6 +239,28 @@ def render_tactical_profile_header(profile_data: Dict[str, Any]) -> None:
                     st.info("📈 **Avg Percentile:** N/A")
             except Exception as e:
                 st.info("📈 **Avg Percentile:** N/A")
+    
+    # Add a second row for key stats
+    if stats:
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
+        
+        with col1:
+            st.metric("🎮 **Games**", stats.get("appearances", 0))
+        
+        with col2:
+            st.metric("⏱️ **Minutes**", f"{int(round(stats.get('minutes', 0))):,}")
+        
+        with col3:
+            st.metric("⚽ **Goals**", stats.get("goals", 0))
+        
+        with col4:
+            st.metric("🎯 **Assists**", stats.get("assists", 0))
+        
+        with col5:
+            st.metric("🦶 **Foot**", stats.get("foot", "—"))
+        
+        with col6:
+            st.metric("👤 **Age**", stats.get("age", "—"))
 
 
 def render_mode_toggle() -> Literal["percentile", "absolute"]:

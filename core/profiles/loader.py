@@ -111,7 +111,7 @@ class TacticalProfileLoader:
             self._axes = []
     
     def _load_ability_scores(self):
-        """Load ability scores data."""
+        """Load ability scores data (raw PC scores)."""
         try:
             scores_path = os.path.join(self.artifacts_dir, "ability_scores.parquet")
             if os.path.exists(scores_path):
@@ -122,6 +122,44 @@ class TacticalProfileLoader:
         except Exception as e:
             print(f"Error loading ability scores: {e}")
             self._ability_scores = pd.DataFrame()
+    
+    def get_ability_scores_zscore(self, player_id: str, season_id: str = None) -> Optional[Dict[str, float]]:
+        """Get Z-score normalized ability scores for a specific player and season."""
+        try:
+            zscore_path = os.path.join(self.artifacts_dir, "ability_scores_zscore.parquet")
+            if not os.path.exists(zscore_path):
+                return None
+            
+            zscore_df = pd.read_parquet(zscore_path)
+            
+            if season_id:
+                player_season_id = f"{player_id}_{season_id}"
+                if player_season_id in zscore_df.index:
+                    return zscore_df.loc[player_season_id].to_dict()
+            
+            return None
+        except Exception as e:
+            print(f"Error loading Z-score abilities for player {player_id} season {season_id}: {e}")
+            return None
+    
+    def get_ability_scores_l2(self, player_id: str, season_id: str = None) -> Optional[Dict[str, float]]:
+        """Get L2-normalized ability scores for a specific player and season."""
+        try:
+            l2_path = os.path.join(self.artifacts_dir, "ability_scores_l2.parquet")
+            if not os.path.exists(l2_path):
+                return None
+            
+            l2_df = pd.read_parquet(l2_path)
+            
+            if season_id:
+                player_season_id = f"{player_id}_{season_id}"
+                if player_season_id in l2_df.index:
+                    return l2_df.loc[player_season_id].to_dict()
+            
+            return None
+        except Exception as e:
+            print(f"Error loading L2-normalized abilities for player {player_id} season {season_id}: {e}")
+            return None
     
     def _load_percentiles(self):
         """Load percentile data."""

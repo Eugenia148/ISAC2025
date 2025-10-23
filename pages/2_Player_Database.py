@@ -656,7 +656,15 @@ if computed_data is not None and computed_data.get('rows'):
                                     float(row["PC5"]),
                                     float(row["PC6"])
                                 ]
-                                pc_labels = ["PC1", "PC2", "PC3", "PC4", "PC5", "PC6"]
+                                pc_labels = [
+                                    "Build-Up & Ball Progression",
+                                    "Defensive Interventions & Aggressiveness",
+                                    "Defensive Duels & Aerial Engagement",
+                                    "Defensive Solidity & Clearances",
+                                    "Distribution Style & Direction",
+                                    "Defensive Coverage & Risk Management"
+                                ]
+
                 
                             # Close loop
                                 pc_values += [pc_values[0]]

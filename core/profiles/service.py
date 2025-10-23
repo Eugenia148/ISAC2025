@@ -3,7 +3,8 @@ Tactical Profile Service
 Builds striker profile payloads for the UI.
 """
 
-from typing import Dict, Optional, Any
+import os
+from typing import Dict, Optional, Any, List
 from .loader import get_loader, TacticalProfileLoader
 
 
@@ -13,6 +14,7 @@ class TacticalProfileService:
     def __init__(self, loader: Optional[TacticalProfileLoader] = None):
         """Initialize the service with a loader."""
         self.loader = loader or get_loader()
+        self._player_cache: Dict[str, Dict[str, Any]] = {}  # Cache for player metadata
         
         # Striker position mappings
         self.striker_positions = {
@@ -20,11 +22,61 @@ class TacticalProfileService:
             'Left Centre Forward', 
             'Right Centre Forward'
         }
+        
+        # Deep Progression Unit position mappings (Full-backs + Midfielders)
+        self.deep_progression_positions = {
+            # Full-backs / Wing-backs
+            'Left Back',
+            'Right Back', 
+            'Left Wing Back',
+            'Right Wing Back',
+            # Defensive Midfielders
+            'Centre Defensive Midfielder',
+            'Left Defensive Midfielder',
+            'Right Defensive Midfielder',
+            # Central Midfielders
+            'Centre Midfielder',
+            'Left Centre Midfielder',
+            'Right Centre Midfielder'
+        }
+        
+        # Attacking Midfielders & Wingers position mappings
+        self.attacking_mid_winger_positions = {
+            # Wide Midfielders
+            'Right Midfielder',
+            'Left Midfielder',
+            # Wingers
+            'Right Wing',
+            'Left Wing',
+            # Attacking Midfielders
+            'Right Attacking Midfielder',
+            'Centre Attacking Midfielder',
+            'Left Attacking Midfielder'
+        }
     
     def is_striker(self, primary_position: str, secondary_position: Optional[str] = None) -> bool:
         """Check if a player is a striker based on position."""
         return (primary_position in self.striker_positions or 
                 (secondary_position and secondary_position in self.striker_positions))
+    
+    def is_deep_progression(self, primary_position: str, secondary_position: Optional[str] = None) -> bool:
+        """Check if a player is part of the Deep Progression Unit based on position."""
+        return primary_position in self.deep_progression_positions
+    
+    def is_attacking_mid_winger(self, primary_position: str, secondary_position: Optional[str] = None) -> bool:
+        """Check if a player is an Attacking Midfielder or Winger based on position."""
+        return (primary_position in self.attacking_mid_winger_positions or 
+                (secondary_position and secondary_position in self.attacking_mid_winger_positions))
+    
+    def get_position_group(self, primary_position: str, secondary_position: Optional[str] = None) -> Optional[str]:
+        """Determine which position group a player belongs to."""
+        if self.is_striker(primary_position, secondary_position):
+            return "striker"
+        elif self.is_deep_progression(primary_position, secondary_position):
+            return "deep_progression"
+        elif self.is_attacking_mid_winger(primary_position, secondary_position):
+            return "attacking_mid_winger"
+        return None
     
     def build_striker_profile(
         self, 
@@ -33,7 +85,14 @@ class TacticalProfileService:
         team_name: str = None,
         primary_position: str = None,
         secondary_position: str = None,
-        season: str = "2024/25"
+        season: str = "2024/25",
+        # Additional stats
+        minutes: int = 0,
+        appearances: int = 0,
+        goals: int = 0,
+        assists: int = 0,
+        foot: str = "—",
+        age: str = "—"
     ) -> Optional[Dict[str, Any]]:
         """
         Build a striker tactical profile payload.
@@ -53,9 +112,10 @@ class TacticalProfileService:
         if primary_position and not self.is_striker(primary_position, secondary_position):
             return None
         
-        # Get ability scores and percentiles
-        ability_scores = self.loader.get_player_ability_scores(player_id)
-        percentiles = self.loader.get_player_percentiles(player_id)
+        # Get ability scores and percentiles for the specific season
+        season_id = self._extract_season_id(season)
+        ability_scores = self.loader.get_player_ability_scores(player_id, season_id)
+        percentiles = self.loader.get_player_percentiles(player_id, season_id)
         
         # If no data found, return None
         if not ability_scores and not percentiles:
@@ -74,6 +134,15 @@ class TacticalProfileService:
             "ability_scores": ability_scores or {},
             "percentiles": percentiles or {},
             "league_reference": league_reference or {},
+            # Additional stats
+            "stats": {
+                "minutes": minutes,
+                "appearances": appearances,
+                "goals": goals,
+                "assists": assists,
+                "foot": foot,
+                "age": age
+            },
             "meta": {
                 "data_version": "v1",
                 "computed_at": "2025-10-21",
@@ -82,6 +151,246 @@ class TacticalProfileService:
         }
         
         return profile
+    
+    def build_deep_progression_profile(
+        self, 
+        player_id: str, 
+        player_name: str = None,
+        team_name: str = None,
+        primary_position: str = None,
+        secondary_position: str = None,
+        season: str = "2024/25",
+        # Additional stats
+        minutes: int = 0,
+        appearances: int = 0,
+        goals: int = 0,
+        assists: int = 0,
+        foot: str = "—",
+        age: str = "—"
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Build a Deep Progression Unit tactical profile payload.
+        
+        Args:
+            player_id: Player identifier
+            player_name: Player name (optional)
+            team_name: Team name (optional)
+            primary_position: Primary position (optional)
+            secondary_position: Secondary position (optional)
+            season: Season identifier (optional)
+            
+        Returns:
+            Profile payload dict or None if player not found or not in Deep Progression Unit
+        """
+        # Check if player is in Deep Progression Unit
+        if primary_position and not self.is_deep_progression(primary_position, secondary_position):
+            return None
+        
+        # Get loader for Deep Progression artifacts
+        from .loader import TacticalProfileLoader
+        dp_loader = TacticalProfileLoader(artifacts_dir="data/processed/deep_progression_artifacts")
+        
+        # Get ability scores and percentiles for the specific season
+        season_id = self._extract_season_id(season)
+        ability_scores = dp_loader.get_player_ability_scores(player_id, season_id)
+        percentiles = dp_loader.get_player_percentiles(player_id, season_id)
+        ability_scores_zscore = dp_loader.get_ability_scores_zscore(player_id, season_id)
+        ability_scores_l2 = dp_loader.get_ability_scores_l2(player_id, season_id)
+        
+        # If no data found, return None
+        if not ability_scores and not percentiles:
+            return None
+        
+        # Get league reference
+        league_reference = dp_loader.get_league_reference()
+        
+        # Build profile payload
+        profile = {
+            "player_id": player_id,
+            "player_name": player_name or "Unknown Player",
+            "team_name": team_name or "Unknown Team",
+            "position": self._format_position(primary_position, secondary_position),
+            "season": season,
+            "ability_scores": ability_scores or {},
+            "ability_scores_zscore": ability_scores_zscore or {},
+            "ability_scores_l2": ability_scores_l2 or {},
+            "percentiles": percentiles or {},
+            "league_reference": league_reference or {},
+            # Additional stats
+            "stats": {
+                "minutes": minutes,
+                "appearances": appearances,
+                "goals": goals,
+                "assists": assists,
+                "foot": foot,
+                "age": age
+            },
+            "meta": {
+                "data_version": "v1",
+                "computed_at": "2025-10-23",
+                "is_deep_progression": True,
+                "position_group": "deep_progression"
+            }
+        }
+        
+        return profile
+    
+    def build_attacking_mid_winger_profile(
+        self, 
+        player_id: str, 
+        player_name: str = None,
+        team_name: str = None,
+        primary_position: str = None,
+        secondary_position: str = None,
+        season: str = "2024/25",
+        # Additional stats
+        minutes: int = 0,
+        appearances: int = 0,
+        goals: int = 0,
+        assists: int = 0,
+        foot: str = "—",
+        age: str = "—"
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Build an Attacking Midfielders & Wingers tactical profile payload.
+        
+        Args:
+            player_id: Player identifier
+            player_name: Player name (optional)
+            team_name: Team name (optional)
+            primary_position: Primary position (optional)
+            secondary_position: Secondary position (optional)
+            season: Season identifier (optional)
+            
+        Returns:
+            Profile payload dict or None if player not found or not in AM/W cohort
+        """
+        # Check if player is in AM/W cohort
+        if primary_position and not self.is_attacking_mid_winger(primary_position, secondary_position):
+            return None
+        
+        # Get loader for AM/W artifacts
+        from .loader import TacticalProfileLoader
+        amw_loader = TacticalProfileLoader(artifacts_dir="data/processed/attacking_midfielders_wingers_artifacts")
+        
+        # Get ability scores and percentiles for the specific season
+        season_id = self._extract_season_id(season)
+        ability_scores = amw_loader.get_player_ability_scores(player_id, season_id)
+        percentiles = amw_loader.get_player_percentiles(player_id, season_id)
+        ability_scores_zscore = amw_loader.get_ability_scores_zscore(player_id, season_id)
+        ability_scores_l2 = amw_loader.get_ability_scores_l2(player_id, season_id)
+        
+        # If no data found, return None
+        if not ability_scores and not percentiles:
+            return None
+        
+        # Get league reference
+        league_reference = amw_loader.get_league_reference()
+        
+        # Build profile payload
+        profile = {
+            "player_id": player_id,
+            "player_name": player_name or "Unknown Player",
+            "team_name": team_name or "Unknown Team",
+            "position": self._format_position(primary_position, secondary_position),
+            "season": season,
+            "ability_scores": ability_scores or {},
+            "ability_scores_zscore": ability_scores_zscore or {},
+            "ability_scores_l2": ability_scores_l2 or {},
+            "percentiles": percentiles or {},
+            "league_reference": league_reference or {},
+            # Additional stats
+            "stats": {
+                "minutes": minutes,
+                "appearances": appearances,
+                "goals": goals,
+                "assists": assists,
+                "foot": foot,
+                "age": age
+            },
+            "meta": {
+                "data_version": "v1",
+                "computed_at": "2025-10-23",
+                "is_attacking_mid_winger": True,
+                "position_group": "attacking_mid_winger"
+            }
+        }
+        
+        return profile
+    
+    def build_profile(
+        self,
+        player_id: str,
+        player_name: str = None,
+        team_name: str = None,
+        primary_position: str = None,
+        secondary_position: str = None,
+        season: str = "2024/25",
+        minutes: int = 0,
+        appearances: int = 0,
+        goals: int = 0,
+        assists: int = 0,
+        foot: str = "—",
+        age: str = "—"
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Build a tactical profile for any player, automatically detecting their position group.
+        
+        Returns:
+            Profile payload dict or None if player not found
+        """
+        # Try striker first
+        if self.is_striker(primary_position, secondary_position):
+            return self.build_striker_profile(
+                player_id=player_id,
+                player_name=player_name,
+                team_name=team_name,
+                primary_position=primary_position,
+                secondary_position=secondary_position,
+                season=season,
+                minutes=minutes,
+                appearances=appearances,
+                goals=goals,
+                assists=assists,
+                foot=foot,
+                age=age
+            )
+        
+        # Try Deep Progression Unit
+        if self.is_deep_progression(primary_position, secondary_position):
+            return self.build_deep_progression_profile(
+                player_id=player_id,
+                player_name=player_name,
+                team_name=team_name,
+                primary_position=primary_position,
+                secondary_position=secondary_position,
+                season=season,
+                minutes=minutes,
+                appearances=appearances,
+                goals=goals,
+                assists=assists,
+                foot=foot,
+                age=age
+            )
+        
+        # Try Attacking Midfielders & Wingers
+        if self.is_attacking_mid_winger(primary_position, secondary_position):
+            return self.build_attacking_mid_winger_profile(
+                player_id=player_id,
+                player_name=player_name,
+                team_name=team_name,
+                primary_position=primary_position,
+                secondary_position=secondary_position,
+                season=season,
+                minutes=minutes,
+                appearances=appearances,
+                goals=goals,
+                assists=assists,
+                foot=foot,
+                age=age
+            )
+        
+        return None
     
     def _format_position(self, primary_position: Optional[str], secondary_position: Optional[str]) -> str:
         """Format position display string."""
@@ -92,6 +401,16 @@ class TacticalProfileService:
             return f"{primary_position} / {secondary_position}"
         else:
             return primary_position
+    
+    def _extract_season_id(self, season: str) -> Optional[str]:
+        """Extract season ID from season string."""
+        season_mapping = {
+            "2024/25": "317",
+            "2023/24": "281", 
+            "2022/23": "235",
+            "2021/22": "108"
+        }
+        return season_mapping.get(season)
     
     def get_profile_summary(self, player_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -117,6 +436,244 @@ class TacticalProfileService:
             "ability_count": len(ability_scores) if ability_scores else 0,
             "percentile_count": len(percentiles) if percentiles else 0
         }
+    
+    def get_similar_players(
+        self,
+        player_season_id: str,
+        position_group: str,
+        k: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        Get top-k most similar players by style (Euclidean distance on L2 vectors).
+        
+        Args:
+            player_season_id: Player season ID (e.g., "12345_317")
+            position_group: "deep_progression" or "attacking_mid_winger"
+            k: Number of similar players to return
+        
+        Returns:
+            List of dicts with keys: player_season_id, player_name, season, similarity (0-100%)
+        """
+        # Load appropriate loader
+        if position_group == "deep_progression":
+            from .loader import TacticalProfileLoader
+            loader = TacticalProfileLoader("data/processed/deep_progression_artifacts")
+            self._current_artifacts_dir = "data/processed/deep_progression_artifacts"
+        elif position_group == "attacking_mid_winger":
+            from .loader import TacticalProfileLoader
+            loader = TacticalProfileLoader("data/processed/attacking_midfielders_wingers_artifacts")
+            self._current_artifacts_dir = "data/processed/attacking_midfielders_wingers_artifacts"
+        else:
+            return []
+        
+        # Get neighbors
+        neighbors = loader.get_neighbors(player_season_id, top_k=k)
+        
+        if not neighbors:
+            return []
+        
+        # Format results with player names
+        result = []
+        for neighbor in neighbors:
+            neighbor_id = neighbor["neighbor_player_season_id"]
+            similarity = neighbor["similarity"]
+            similarity_pct = round(similarity * 100)
+            
+            # Parse season from player_season_id
+            season_display = self._parse_season_from_id(neighbor_id)
+            
+            # Get player info (name, team, position)
+            player_info = self._get_player_info(neighbor_id)
+            
+            result.append({
+                "player_season_id": neighbor_id,
+                "player_name": player_info["name"],
+                "team": player_info["team"],
+                "position": player_info["position"],
+                "season": season_display,
+                "similarity": similarity_pct,
+                "euclidean_distance": neighbor["euclidean_distance"]
+            })
+        
+        return result
+    
+    def get_player_evolution(
+        self,
+        player_id: str,
+        current_season_id: int,
+        position_group: str,
+        player_name: str = None,
+        team_name: str = None,
+        primary_position: str = None,
+        secondary_position: str = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Get player's radar data from previous seasons.
+        
+        Args:
+            player_id: Player identifier
+            current_season_id: Current season being viewed (e.g., 317)
+            position_group: "striker", "deep_progression", or "attacking_mid_winger"
+            player_name: Player name (optional)
+            team_name: Team name (optional)
+            primary_position: Primary position (optional)
+            secondary_position: Secondary position (optional)
+            
+        Returns:
+            List of profile dicts (simplified), ordered chronologically (oldest first)
+        """
+        # Season mapping
+        season_map = {317: "24/25", 281: "23/24", 235: "22/23", 108: "21/22"}
+        season_order = [108, 235, 281, 317]  # Chronological order
+        
+        # Get index of current season
+        try:
+            current_idx = season_order.index(current_season_id)
+        except ValueError:
+            return []  # Invalid season_id
+        
+        # Get up to 2 previous seasons
+        previous_seasons = []
+        for i in range(max(0, current_idx - 2), current_idx):
+            previous_seasons.append(season_order[i])
+        
+        if not previous_seasons:
+            return []
+        
+        # Load appropriate artifacts based on position group
+        if position_group == "striker":
+            loader = self.loader  # Use default striker loader
+        elif position_group == "deep_progression":
+            from .loader import TacticalProfileLoader
+            loader = TacticalProfileLoader("data/processed/deep_progression_artifacts")
+        elif position_group == "attacking_mid_winger":
+            from .loader import TacticalProfileLoader
+            loader = TacticalProfileLoader("data/processed/attacking_midfielders_wingers_artifacts")
+        else:
+            return []
+        
+        # Build profile for each previous season
+        evolution_profiles = []
+        for season_id in previous_seasons:
+            season_display = season_map.get(season_id, str(season_id))
+            
+            # Get ability scores and percentiles for this season
+            ability_scores = loader.get_player_ability_scores(player_id, season_id)
+            percentiles = loader.get_player_percentiles(player_id, season_id)
+            
+            # Skip if no data found
+            if not ability_scores and not percentiles:
+                continue
+            
+            # For non-striker position groups, also load z-score and L2 data
+            ability_scores_zscore = {}
+            ability_scores_l2 = {}
+            if position_group in ["deep_progression", "attacking_mid_winger"]:
+                ability_scores_zscore = loader.get_ability_scores_zscore(player_id, season_id)
+                ability_scores_l2 = loader.get_ability_scores_l2(player_id, season_id)
+            
+            # Get league reference
+            league_reference = loader.get_league_reference()
+            
+            # Build simplified profile
+            profile = {
+                "player_id": player_id,
+                "player_name": player_name or "Unknown Player",
+                "team_name": team_name or "Unknown Team",
+                "position": self._format_position(primary_position, secondary_position),
+                "season": season_display,
+                "ability_scores": ability_scores or {},
+                "ability_scores_zscore": ability_scores_zscore or {},
+                "ability_scores_l2": ability_scores_l2 or {},
+                "percentiles": percentiles or {},
+                "league_reference": league_reference or {},
+                "stats": {},  # Empty stats for historical data
+                "meta": {
+                    "data_version": "v1",
+                    "position_group": position_group,
+                    "is_historical": True
+                }
+            }
+            
+            evolution_profiles.append(profile)
+        
+        return evolution_profiles
+    
+    def _parse_season_from_id(self, player_season_id: str) -> str:
+        """Extract season display from player_season_id."""
+        try:
+            parts = player_season_id.split('_')
+            if len(parts) >= 2:
+                season_id = int(parts[-1])
+                season_map = {317: "24/25", 281: "23/24", 235: "22/23", 108: "21/22"}
+                return season_map.get(season_id, str(season_id))
+        except:
+            pass
+        return "Unknown"
+    
+    def _get_player_info(self, player_season_id: str) -> Dict[str, str]:
+        """
+        Get player info (name, team, position) from player_season_id.
+        Reads directly from the ability_scores_l2.parquet file (which contains metadata).
+        Uses caching to avoid repeated file reads.
+        """
+        # Check cache first
+        if player_season_id in self._player_cache:
+            return self._player_cache[player_season_id]
+        
+        # Determine which artifacts directory to use based on the caller context
+        # This will be set by get_similar_players when it knows the position group
+        artifacts_dir = getattr(self, '_current_artifacts_dir', None)
+        
+        if not artifacts_dir:
+            # Fallback: try to determine from position if available
+            fallback = {
+                "name": player_season_id,
+                "team": "—",
+                "position": "—"
+            }
+            self._player_cache[player_season_id] = fallback
+            return fallback
+        
+        try:
+            import pandas as pd
+            scores_path = os.path.join(artifacts_dir, "ability_scores_l2.parquet")
+            
+            # Load parquet if not already cached
+            cache_key = f"_metadata_{artifacts_dir}"
+            if not hasattr(self, cache_key):
+                scores_df = pd.read_parquet(scores_path)
+                # Create lookup dict for fast access
+                metadata_dict = {}
+                for idx, row in scores_df.iterrows():
+                    metadata_dict[idx] = {
+                        "name": row.get('player_name', idx),
+                        "team": row.get('team_name', '—'),
+                        "position": row.get('primary_position', '—')
+                    }
+                setattr(self, cache_key, metadata_dict)
+            
+            # Get metadata from cached dict
+            metadata_dict = getattr(self, cache_key)
+            info = metadata_dict.get(player_season_id, {
+                "name": player_season_id,
+                "team": "—",
+                "position": "—"
+            })
+            
+            # Cache the result
+            self._player_cache[player_season_id] = info
+            return info
+            
+        except Exception as e:
+            print(f"Error reading player info from parquet for {player_season_id}: {e}")
+            fallback = {
+                "name": player_season_id,
+                "team": "—",
+                "position": "—"
+            }
+            self._player_cache[player_season_id] = fallback
+            return fallback
 
 
 # Global service instance

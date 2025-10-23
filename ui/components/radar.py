@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
 from typing import Dict, List, Optional, Any, Literal
+from scipy.stats import norm
 from core.profiles.loader import Axis, get_loader
 
 
@@ -30,8 +31,19 @@ def render_tactical_profile_radar(
         st.error("No profile data available")
         return
     
-    # Get axes from loader
-    loader = get_loader()
+    # Get axes from the appropriate loader based on position group
+    meta = profile_data.get("meta", {})
+    position_group = meta.get("position_group", "striker")
+    
+    if position_group == "deep_progression":
+        from core.profiles.loader import TacticalProfileLoader
+        loader = TacticalProfileLoader(artifacts_dir="data/processed/deep_progression_artifacts")
+    elif position_group == "attacking_mid_winger":
+        from core.profiles.loader import TacticalProfileLoader
+        loader = TacticalProfileLoader(artifacts_dir="data/processed/attacking_midfielders_wingers_artifacts")
+    else:
+        loader = get_loader()
+    
     axes = loader.get_axes()
     
     if not axes:
@@ -44,8 +56,22 @@ def render_tactical_profile_radar(
         value_range = (0, 100)
         title_suffix = "Percentiles"
         value_format = ".0f"
+    elif mode == "zscore":
+        # Z-score mode (Deep Progression only) - display as percentiles
+        values = profile_data.get("ability_scores_zscore", {})
+        value_range = (-2.5, 2.5)  # Capped Z-scores for internal use
+        title_suffix = "Performance (Percentile Rank)"
+        value_format = ".2f"
+    elif mode == "l2":
+        # L2-normalized mode (Deep Progression only)
+        values = profile_data.get("ability_scores_l2", {})
+        value_range = (-1, 1)  # L2-normalized vectors
+        title_suffix = "Style (L2-normalized)"
+        value_format = ".3f"
     else:
+        # Default/absolute mode (striker raw scores)
         values = profile_data.get("ability_scores", {})
+        # Get axis ranges from the same loader we're using
         axis_ranges = loader.get_axis_ranges()
         if axis_ranges:
             # Use actual ranges from data
@@ -76,14 +102,39 @@ def render_tactical_profile_radar(
     fig = go.Figure()
     
     # Player data
-    fig.add_trace(go.Scatterpolar(
-        r=player_values,
-        theta=axis_labels,
-        fill='toself',
-        name=profile_data.get("player_name", "Player"),
-        line=dict(color='#1f77b4', width=2),
-        fillcolor='rgba(31, 119, 180, 0.25)'
-    ))
+    # Prepare hover text based on mode
+    if mode == "zscore":
+        # For Z-score mode, show percentiles with Z-score context
+        hover_texts = []
+        for i, val in enumerate(player_values):
+            percentile = norm.cdf(val) * 100
+            hover_texts.append(
+                f"<b>{axis_labels[i]}</b><br>"
+                f"Percentile: {percentile:.1f}%<br>"
+                f"(Better than {percentile:.0f}% of players)<br>"
+                f"Z-score: {val:+.2f} SD"
+            )
+        hover_template = '%{text}<extra></extra>'
+        
+        fig.add_trace(go.Scatterpolar(
+            r=player_values,
+            theta=axis_labels,
+            fill='toself',
+            name=profile_data.get("player_name", "Player"),
+            line=dict(color='#1f77b4', width=2),
+            fillcolor='rgba(31, 119, 180, 0.25)',
+            text=hover_texts,
+            hovertemplate=hover_template
+        ))
+    else:
+        fig.add_trace(go.Scatterpolar(
+            r=player_values,
+            theta=axis_labels,
+            fill='toself',
+            name=profile_data.get("player_name", "Player"),
+            line=dict(color='#1f77b4', width=2),
+            fillcolor='rgba(31, 119, 180, 0.25)'
+        ))
     
     # League average overlay (if requested and available)
     # Only show league average for raw scores, not percentiles (where it's always 50%)
@@ -147,14 +198,20 @@ def render_tactical_profile_radar(
 def _render_value_details(
     profile_data: Dict[str, Any],
     axes: List[Axis],
-    mode: Literal["percentile", "absolute"]
+    mode: str
 ) -> None:
     """Render detailed value information below the radar chart."""
     
     if mode == "percentile":
         values = profile_data.get("percentiles", {})
         value_suffix = "%"
-    else:
+    elif mode == "zscore":
+        values = profile_data.get("ability_scores_zscore", {})
+        value_suffix = " SD"  # Standard deviations
+    elif mode == "l2":
+        values = profile_data.get("ability_scores_l2", {})
+        value_suffix = ""
+    else:  # absolute
         values = profile_data.get("ability_scores", {})
         value_suffix = ""
     
@@ -176,6 +233,7 @@ def _render_value_details(
                 if not isinstance(value, (int, float)):
                     value = 0
                 
+                # Color coding based on mode
                 if mode == "percentile":
                     # Color code percentiles
                     if value >= 75:
@@ -186,14 +244,38 @@ def _render_value_details(
                         color = "🟠"  # Orange for medium-low
                     else:
                         color = "🔴"  # Red for low
+                elif mode == "zscore":
+                    # Convert Z-score to percentile for primary display
+                    percentile = norm.cdf(value) * 100
+                    
+                    # Color code based on Z-scores (for consistency)
+                    if value >= 1.5:
+                        color = "🟢"  # Green for well above average
+                    elif value >= 0.5:
+                        color = "🟡"  # Yellow for above average
+                    elif value >= -0.5:
+                        color = "⚪"  # White for average
+                    elif value >= -1.5:
+                        color = "🟠"  # Orange for below average
+                    else:
+                        color = "🔴"  # Red for well below average
+                    
+                    # Display percentile as primary, Z-score as delta
+                    st.metric(
+                        label=f"{color} {axis.label}",
+                        value=f"{percentile:.1f}%",
+                        delta=f"{value:+.2f} SD",
+                        help=f"{axis.description}\n\n**Percentile:** {percentile:.1f}% (better than {percentile:.0f}% of players)\n**Z-score:** {value:+.2f} standard deviations from mean"
+                    )
                 else:
-                    color = "⚪"  # White circle for absolute values
+                    color = "⚪"  # White circle for absolute/L2 values
                 
-                st.metric(
-                    label=f"{color} {axis.label}",
-                    value=f"{value:.1f}{value_suffix}",
-                    help=axis.description
-                )
+                if mode != "zscore":
+                    st.metric(
+                        label=f"{color} {axis.label}",
+                        value=f"{value:.1f}{value_suffix}",
+                        help=axis.description
+                    )
             except Exception as e:
                 st.metric(
                     label=f"⚪ {axis.label}",
@@ -209,10 +291,11 @@ def render_tactical_profile_header(profile_data: Dict[str, Any]) -> None:
     team_name = profile_data.get("team_name", "Unknown Team")
     position = profile_data.get("position", "Striker")
     season = profile_data.get("season", "2024/25")
+    stats = profile_data.get("stats", {})
     
     st.subheader(f"🎯 Tactical Profile — {player_name}")
     
-    # Create chips for player info
+    # Create chips for player info - expanded to show more stats
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
@@ -238,28 +321,77 @@ def render_tactical_profile_header(profile_data: Dict[str, Any]) -> None:
                     st.info("📈 **Avg Percentile:** N/A")
             except Exception as e:
                 st.info("📈 **Avg Percentile:** N/A")
+    
+    # Add role badge row if role_data is provided
+    if profile_data.get("role_data"):
+        from ui.components.player_role_header import render_role_badge
+        render_role_badge(profile_data.get("role_data"))
+    
+    # Add a second row for key stats
+    if stats:
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
+        
+        with col1:
+            st.metric("🎮 **Games**", stats.get("appearances", 0))
+        
+        with col2:
+            st.metric("⏱️ **Minutes**", f"{int(round(stats.get('minutes', 0))):,}")
+        
+        with col3:
+            st.metric("⚽ **Goals**", stats.get("goals", 0))
+        
+        with col4:
+            st.metric("🎯 **Assists**", stats.get("assists", 0))
+        
+        with col5:
+            st.metric("🦶 **Foot**", stats.get("foot", "—"))
+        
+        with col6:
+            st.metric("👤 **Age**", stats.get("age", "—"))
 
 
-def render_mode_toggle() -> Literal["percentile", "absolute"]:
-    """Render mode toggle for percentile vs absolute display."""
+def render_mode_toggle(position_group: str = "striker") -> tuple:
+    """Render mode toggle for display options.
+    
+    Args:
+        position_group: "striker", "deep_progression", or "attacking_mid_winger" to determine available modes
+        
+    Returns:
+        tuple: (mode, show_league_avg) where mode is "percentile", "zscore", or "l2"
+    """
     
     st.subheader("⚙️ Display Options")
     
     col1, col2 = st.columns([1, 2])
     
     with col1:
-        mode = st.radio(
-            "Display Mode:",
-            options=["percentile", "absolute"],
-            format_func=lambda x: "📊 Percentiles (0-100)" if x == "percentile" else "📈 Raw Scores",
-            index=0
-        )
+        if position_group in ["deep_progression", "attacking_mid_winger"]:
+            # Deep Progression & AM/W: 3 modes (percentile, zscore default, l2)
+            mode = st.radio(
+                "Display Mode:",
+                options=["zscore", "l2", "percentile"],
+                format_func=lambda x: {
+                    "zscore": "📊 Performance (Percentile Rank)",
+                    "l2": "🎨 Style (L2-normalized)",
+                    "percentile": "📈 Raw Percentiles"
+                }[x],
+                index=0,  # Default to zscore
+                help="Percentile Rank: performance-based ranking (Z-score normalized) | L2: playing style comparison | Raw Percentiles: direct ranking"
+            )
+        else:
+            # Striker: 2 modes (percentile, absolute)
+            mode = st.radio(
+                "Display Mode:",
+                options=["percentile", "absolute"],
+                format_func=lambda x: "📊 Percentiles (0-100)" if x == "percentile" else "📈 Raw Scores",
+                index=0
+            )
     
     with col2:
          show_league_avg = st.checkbox(
              "Show League Average",
              value=True,
-             help="Display league average overlay (only available in raw scores mode)"
+             help="Display league average overlay (only available in some modes)"
          )
     
     return mode, show_league_avg
@@ -276,13 +408,17 @@ def render_tactical_profile_panel(profile_data: Dict[str, Any]) -> None:
         st.error("No profile data available")
         return
     
+    # Get position group from metadata
+    meta = profile_data.get("meta", {})
+    position_group = meta.get("position_group", "striker")
+    
     # Render header
     render_tactical_profile_header(profile_data)
     
     st.divider()
     
-    # Render mode toggle
-    mode, show_league_avg = render_mode_toggle()
+    # Render mode toggle (with position-specific options)
+    mode, show_league_avg = render_mode_toggle(position_group=position_group)
     
     # Render radar chart
     render_tactical_profile_radar(
@@ -291,8 +427,107 @@ def render_tactical_profile_panel(profile_data: Dict[str, Any]) -> None:
         show_league_average=show_league_avg
     )
     
-    # Render footer note
-    st.caption(
-        "📝 **Note:** Percentiles relative to Liga MX strikers, 2024/25. "
-        "Data computed from PCA analysis of tactical metrics."
-    )
+    # Render footer note (dynamic based on position group and mode)
+    if position_group == "deep_progression":
+        cohort_label = "Liga MX Deep Progression Unit (Wing Backs, Full Backs, Defensive & Central Midfielders)"
+        n_dimensions = 7
+        
+        if mode == "zscore":
+            note = (
+                f"📝 **Performance vs League (Percentile Rank):** Percentiles show ranking within cohort. "
+                f"50% = average, 84% = one standard deviation above average, 98% = two standard deviations above average. "
+                f"**Z-scores shown as delta for statistical context.** Based on {cohort_label} ({n_dimensions}D PCA)."
+            )
+        elif mode == "l2":
+            note = (
+                f"📝 **Style Distribution (L2-normalized):** Shows relative distribution of abilities (unit vector). "
+                f"Emphasizes playing style shape rather than magnitude. "
+                f"Based on {cohort_label} ({n_dimensions}D PCA)."
+            )
+        else:  # percentile
+            note = (
+                f"📝 **Percentiles:** Rankings relative to {cohort_label}, 2024/25. "
+                f"50% = median, 90% = top 10%. Data from {n_dimensions}D PCA analysis."
+            )
+    elif position_group == "attacking_mid_winger":
+        cohort_label = "Liga MX Attacking Midfielders & Wingers"
+        n_dimensions = 7
+        
+        if mode == "zscore":
+            note = (
+                f"📝 **Performance vs League (Percentile Rank):** Percentiles show ranking within cohort. "
+                f"50% = average, 84% = one standard deviation above average, 98% = two standard deviations above average. "
+                f"**Z-scores shown as delta for statistical context.** Based on {cohort_label} ({n_dimensions}D PCA)."
+            )
+        elif mode == "l2":
+            note = (
+                f"📝 **Style Distribution (L2-normalized):** Shows relative distribution of abilities (unit vector). "
+                f"Emphasizes playing style shape rather than magnitude. "
+                f"Based on {cohort_label} ({n_dimensions}D PCA)."
+            )
+        else:  # percentile
+            note = (
+                f"📝 **Percentiles:** Rankings relative to {cohort_label}, 2024/25. "
+                f"50% = median, 90% = top 10%. Data from {n_dimensions}D PCA analysis."
+            )
+    else:
+        cohort_label = "Liga MX strikers"
+        n_dimensions = 6
+        note = (
+            f"📝 **Note:** Percentiles relative to {cohort_label}, 2024/25. "
+            f"Data computed from PCA analysis ({n_dimensions}D) of tactical metrics."
+        )
+    
+    st.caption(note)
+    
+    # Player Evolution Section
+    st.markdown("---")
+    
+    with st.expander("📈 Player Evolution", expanded=False):
+        # Get evolution data using the service
+        from core.profiles.service import get_service
+        service = get_service()
+        
+        # Extract necessary data from profile
+        player_id = profile_data.get("player_id")
+        player_name = profile_data.get("player_name")
+        team_name = profile_data.get("team_name")
+        season_str = profile_data.get("season", "24/25")
+        
+        # Map season display to season_id
+        season_map = {"24/25": 317, "23/24": 281, "22/23": 235, "21/22": 108}
+        current_season_id = season_map.get(season_str, 317)
+        
+        # Get primary and secondary positions from the position string
+        position_str = profile_data.get("position", "")
+        positions = position_str.split(" / ") if " / " in position_str else [position_str]
+        primary_position = positions[0] if positions else ""
+        secondary_position = positions[1] if len(positions) > 1 else None
+        
+        # Get evolution data
+        evolution_data = service.get_player_evolution(
+            player_id=player_id,
+            current_season_id=current_season_id,
+            position_group=position_group,
+            player_name=player_name,
+            team_name=team_name,
+            primary_position=primary_position,
+            secondary_position=secondary_position
+        )
+        
+        if not evolution_data:
+            st.info("No previous season data available for this player.")
+        else:
+            # Create columns for horizontal layout
+            cols = st.columns(len(evolution_data))
+            
+            for idx, (col, season_profile) in enumerate(zip(cols, evolution_data)):
+                with col:
+                    st.markdown(f"**Season {season_profile['season']}**")
+                    # Render smaller radar using existing component (use same mode)
+                    render_tactical_profile_radar(
+                        season_profile,
+                        mode=mode,
+                        show_league_average=False,
+                        chart_height=400  # Smaller size for evolution
+                    )

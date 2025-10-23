@@ -3,7 +3,8 @@ Tactical Profile Service
 Builds striker profile payloads for the UI.
 """
 
-from typing import Dict, Optional, Any
+import os
+from typing import Dict, Optional, Any, List
 from .loader import get_loader, TacticalProfileLoader
 
 
@@ -13,6 +14,7 @@ class TacticalProfileService:
     def __init__(self, loader: Optional[TacticalProfileLoader] = None):
         """Initialize the service with a loader."""
         self.loader = loader or get_loader()
+        self._player_cache: Dict[str, Dict[str, Any]] = {}  # Cache for player metadata
         
         # Striker position mappings
         self.striker_positions = {
@@ -434,6 +436,142 @@ class TacticalProfileService:
             "ability_count": len(ability_scores) if ability_scores else 0,
             "percentile_count": len(percentiles) if percentiles else 0
         }
+    
+    def get_similar_players(
+        self,
+        player_season_id: str,
+        position_group: str,
+        k: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        Get top-k most similar players by style (Euclidean distance on L2 vectors).
+        
+        Args:
+            player_season_id: Player season ID (e.g., "12345_317")
+            position_group: "deep_progression" or "attacking_mid_winger"
+            k: Number of similar players to return
+        
+        Returns:
+            List of dicts with keys: player_season_id, player_name, season, similarity (0-100%)
+        """
+        # Load appropriate loader
+        if position_group == "deep_progression":
+            from .loader import TacticalProfileLoader
+            loader = TacticalProfileLoader("data/processed/deep_progression_artifacts")
+            self._current_artifacts_dir = "data/processed/deep_progression_artifacts"
+        elif position_group == "attacking_mid_winger":
+            from .loader import TacticalProfileLoader
+            loader = TacticalProfileLoader("data/processed/attacking_midfielders_wingers_artifacts")
+            self._current_artifacts_dir = "data/processed/attacking_midfielders_wingers_artifacts"
+        else:
+            return []
+        
+        # Get neighbors
+        neighbors = loader.get_neighbors(player_season_id, top_k=k)
+        
+        if not neighbors:
+            return []
+        
+        # Format results with player names
+        result = []
+        for neighbor in neighbors:
+            neighbor_id = neighbor["neighbor_player_season_id"]
+            similarity = neighbor["similarity"]
+            similarity_pct = round(similarity * 100)
+            
+            # Parse season from player_season_id
+            season_display = self._parse_season_from_id(neighbor_id)
+            
+            # Get player info (name, team, position)
+            player_info = self._get_player_info(neighbor_id)
+            
+            result.append({
+                "player_season_id": neighbor_id,
+                "player_name": player_info["name"],
+                "team": player_info["team"],
+                "position": player_info["position"],
+                "season": season_display,
+                "similarity": similarity_pct,
+                "euclidean_distance": neighbor["euclidean_distance"]
+            })
+        
+        return result
+    
+    def _parse_season_from_id(self, player_season_id: str) -> str:
+        """Extract season display from player_season_id."""
+        try:
+            parts = player_season_id.split('_')
+            if len(parts) >= 2:
+                season_id = int(parts[-1])
+                season_map = {317: "24/25", 281: "23/24", 235: "22/23", 108: "21/22"}
+                return season_map.get(season_id, str(season_id))
+        except:
+            pass
+        return "Unknown"
+    
+    def _get_player_info(self, player_season_id: str) -> Dict[str, str]:
+        """
+        Get player info (name, team, position) from player_season_id.
+        Reads directly from the ability_scores_l2.parquet file (which contains metadata).
+        Uses caching to avoid repeated file reads.
+        """
+        # Check cache first
+        if player_season_id in self._player_cache:
+            return self._player_cache[player_season_id]
+        
+        # Determine which artifacts directory to use based on the caller context
+        # This will be set by get_similar_players when it knows the position group
+        artifacts_dir = getattr(self, '_current_artifacts_dir', None)
+        
+        if not artifacts_dir:
+            # Fallback: try to determine from position if available
+            fallback = {
+                "name": player_season_id,
+                "team": "—",
+                "position": "—"
+            }
+            self._player_cache[player_season_id] = fallback
+            return fallback
+        
+        try:
+            import pandas as pd
+            scores_path = os.path.join(artifacts_dir, "ability_scores_l2.parquet")
+            
+            # Load parquet if not already cached
+            cache_key = f"_metadata_{artifacts_dir}"
+            if not hasattr(self, cache_key):
+                scores_df = pd.read_parquet(scores_path)
+                # Create lookup dict for fast access
+                metadata_dict = {}
+                for idx, row in scores_df.iterrows():
+                    metadata_dict[idx] = {
+                        "name": row.get('player_name', idx),
+                        "team": row.get('team_name', '—'),
+                        "position": row.get('primary_position', '—')
+                    }
+                setattr(self, cache_key, metadata_dict)
+            
+            # Get metadata from cached dict
+            metadata_dict = getattr(self, cache_key)
+            info = metadata_dict.get(player_season_id, {
+                "name": player_season_id,
+                "team": "—",
+                "position": "—"
+            })
+            
+            # Cache the result
+            self._player_cache[player_season_id] = info
+            return info
+            
+        except Exception as e:
+            print(f"Error reading player info from parquet for {player_season_id}: {e}")
+            fallback = {
+                "name": player_season_id,
+                "team": "—",
+                "position": "—"
+            }
+            self._player_cache[player_season_id] = fallback
+            return fallback
 
 
 # Global service instance

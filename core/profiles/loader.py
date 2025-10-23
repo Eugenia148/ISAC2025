@@ -44,6 +44,7 @@ class TacticalProfileLoader:
         self._percentiles: Optional[pd.DataFrame] = None
         self._league_reference: Optional[Dict[str, float]] = None
         self._axis_ranges: Optional[Dict[str, Dict[str, float]]] = None
+        self._neighbors_df: Optional[pd.DataFrame] = None
         
     def _load_artifacts_if_needed(self):
         """Lazy load artifacts on first access."""
@@ -298,6 +299,46 @@ class TacticalProfileLoader:
         """Get axis ranges for absolute mode rendering."""
         self._load_artifacts_if_needed()
         return self._axis_ranges
+    
+    def _load_neighbors(self) -> None:
+        """Load neighbor similarity data."""
+        try:
+            neighbors_path = os.path.join(self.artifacts_dir, "player_neighbors.parquet")
+            if os.path.exists(neighbors_path):
+                self._neighbors_df = pd.read_parquet(neighbors_path)
+            else:
+                self._neighbors_df = pd.DataFrame()
+        except Exception as e:
+            print(f"Error loading neighbors: {e}")
+            self._neighbors_df = pd.DataFrame()
+    
+    def get_neighbors(self, player_season_id: str, top_k: int = 5) -> List[Dict]:
+        """
+        Get top-K most similar players by Euclidean distance on L2-normalized vectors.
+        
+        Args:
+            player_season_id: Player season ID (e.g., "12345_317")
+            top_k: Number of neighbors to return
+            
+        Returns:
+            List of dicts with keys: neighbor_player_season_id, euclidean_distance, similarity
+        """
+        if self._neighbors_df is None:
+            self._load_neighbors()
+        
+        if self._neighbors_df.empty:
+            return []
+        
+        try:
+            # Filter for this anchor player and get top K
+            neighbors = self._neighbors_df[
+                self._neighbors_df["anchor_player_season_id"] == player_season_id
+            ].head(top_k)
+            
+            return neighbors.to_dict('records')
+        except Exception as e:
+            print(f"Error getting neighbors for player {player_season_id}: {e}")
+            return []
 
 
 # Global loader instance

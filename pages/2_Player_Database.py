@@ -550,64 +550,93 @@ if computed_data is not None and computed_data.get('rows'):
                             st.write(f"**{player_name}** plays as **{position}** - part of the Deep Progression Unit.")
                             st.write("View the Tactical Profile tab for detailed analysis of their 7-dimensional ability profile.")
                     
-                    # Show similar players in expandable section (strikers only for now)
-                    if position_group == "striker":
+                    # Show similar players in expandable section
+                    if position_group in ["striker", "deep_progression", "attacking_mid_winger"]:
                         st.markdown("---")
-                        with st.expander("⭐ Most Similar Strikers (all seasons)"):
-                            # Ensure player_id is integer
-                            player_id_int = int(player_id) if player_id else None
-                            
-                            if player_id_int:
-                                similar_players = role_service.get_similar_players(player_id_int, season_id, k=5)
+                        
+                        # Dynamic title and labels
+                        group_labels = {
+                            "striker": "Strikers",
+                            "deep_progression": "Deep Progression Players",
+                            "attacking_mid_winger": "Attacking Midfielders & Wingers"
+                        }
+                        title = f"⭐ Most Similar {group_labels[position_group]} (all seasons)"
+                        
+                        with st.expander(title):
+                            # Ensure player_id is available
+                            if not player_id:
+                                st.warning("Player ID not available")
                             else:
-                                similar_players = []
-                            
-                            if similar_players:
-                                # Create table data with season formatting
-                                season_id_to_display = {
-                                    317: "24/25",
-                                    281: "23/24",
-                                    235: "22/23",
-                                    108: "21/22"
-                                }
-                                
-                                table_data = []
-                                for neighbor in similar_players:
-                                    neighbor_name = neighbor.get("player_name", f"Player {neighbor['player_id']}")
-                                    neighbor_role = neighbor.get("role", "Unknown")
-                                    neighbor_season_id = neighbor.get("season_id", 317)
-                                    neighbor_season = season_id_to_display.get(neighbor_season_id, str(neighbor_season_id))
-                                    similarity = neighbor.get("similarity", 0)
+                                if position_group == "striker":
+                                    # Use role service (includes role column, uses cosine similarity)
+                                    player_id_int = int(player_id) if player_id else None
+                                    if player_id_int:
+                                        similar_players = role_service.get_similar_players(player_id_int, season_id, k=5)
+                                    else:
+                                        similar_players = []
                                     
-                                    table_data.append({
-                                        "Player": neighbor_name,
-                                        "Season": neighbor_season,
-                                        "Role": neighbor_role,
-                                        "Similarity": f"{similarity*100:.0f}%"
-                                    })
+                                    if similar_players:
+                                        # Table with Role column
+                                        table_data = []
+                                        season_id_to_display = {317: "24/25", 281: "23/24", 235: "22/23", 108: "21/22"}
+                                        
+                                        for neighbor in similar_players:
+                                            table_data.append({
+                                                "Player": neighbor.get("player_name", f"Player {neighbor['player_id']}"),
+                                                "Season": season_id_to_display.get(neighbor.get("season_id", 317), ""),
+                                                "Role": neighbor.get("role", "Unknown"),
+                                                "Similarity": f"{neighbor.get('similarity', 0)}%"
+                                            })
+                                        
+                                        df_similar = pd.DataFrame(table_data)
+                                        st.dataframe(df_similar, use_container_width=True, hide_index=True)
+                                        st.caption("Similarity based on 6D playing style vectors (cosine similarity).")
+                                    else:
+                                        st.warning(f"No similar strikers found for {player_name}.")
                                 
-                                # Display as table
-                                import pandas as pd
-                                df_similar = pd.DataFrame(table_data)
-                                
-                                st.dataframe(
-                                    df_similar,
-                                    use_container_width=True,
-                                    hide_index=True,
-                                    column_config={
-                                        "Player": st.column_config.TextColumn("Player"),
-                                        "Season": st.column_config.TextColumn("Season"),
-                                        "Role": st.column_config.TextColumn("Role"),
-                                        "Similarity": st.column_config.TextColumn("Similarity")
-                                    }
-                                )
-                                
-                                st.caption(
-                                    f"Similarity scores are cosine similarity (0-100%) on 6D playing style vectors. "
-                                    f"Span across all {len(set(n['season_id'] for n in similar_players))} seasons in dataset."
-                                )
-                            else:
-                                st.warning(f"No similar strikers found for {player_name}.")
+                                else:
+                                    # Use profile service (no role column, uses Euclidean distance)
+                                    # Construct player_season_id from player_id and season_id
+                                    player_season_id = f"{player_id}_{season_id}"
+                                    similar_players = service.get_similar_players(
+                                        player_season_id=player_season_id,
+                                        position_group=position_group,
+                                        k=5
+                                    )
+                                    
+                                    if similar_players:
+                                        # Table with Player, Team, Position, Season, Similarity columns
+                                        table_data = []
+                                        for neighbor in similar_players:
+                                            table_data.append({
+                                                "Player": neighbor.get("player_name", neighbor.get("player_season_id")),
+                                                "Team": neighbor.get("team", "—"),
+                                                "Position": neighbor.get("position", "—"),
+                                                "Season": neighbor.get("season", ""),
+                                                "Similarity": f"{neighbor.get('similarity', 0)}%"
+                                            })
+                                        
+                                        df_similar = pd.DataFrame(table_data)
+                                        st.dataframe(
+                                            df_similar,
+                                            use_container_width=True,
+                                            hide_index=True,
+                                            column_config={
+                                                "Player": st.column_config.TextColumn("Player"),
+                                                "Team": st.column_config.TextColumn("Team"),
+                                                "Position": st.column_config.TextColumn("Position"),
+                                                "Season": st.column_config.TextColumn("Season"),
+                                                "Similarity": st.column_config.TextColumn("Similarity")
+                                            }
+                                        )
+                                        
+                                        n_dimensions = 7
+                                        st.caption(
+                                            f"Style similarity based on {n_dimensions}D L2-normalized ability vectors "
+                                            f"(Euclidean distance). Span across all seasons in dataset."
+                                        )
+                                    else:
+                                        st.warning(f"No similar players found for {player_name}.")
                 else:
                     st.info(f"ℹ️ Tactical profiles are available for Strikers, Deep Progression Unit players (Full-backs & Midfielders), and Attacking Midfielders & Wingers. {player_name} plays as {primary_position}, which is not currently supported.")
     else:

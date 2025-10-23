@@ -38,6 +38,9 @@ def render_tactical_profile_radar(
     if position_group == "deep_progression":
         from core.profiles.loader import TacticalProfileLoader
         loader = TacticalProfileLoader(artifacts_dir="data/processed/deep_progression_artifacts")
+    elif position_group == "attacking_mid_winger":
+        from core.profiles.loader import TacticalProfileLoader
+        loader = TacticalProfileLoader(artifacts_dir="data/processed/attacking_midfielders_wingers_artifacts")
     else:
         loader = get_loader()
     
@@ -351,7 +354,7 @@ def render_mode_toggle(position_group: str = "striker") -> tuple:
     """Render mode toggle for display options.
     
     Args:
-        position_group: "striker" or "deep_progression" to determine available modes
+        position_group: "striker", "deep_progression", or "attacking_mid_winger" to determine available modes
         
     Returns:
         tuple: (mode, show_league_avg) where mode is "percentile", "zscore", or "l2"
@@ -362,8 +365,8 @@ def render_mode_toggle(position_group: str = "striker") -> tuple:
     col1, col2 = st.columns([1, 2])
     
     with col1:
-        if position_group == "deep_progression":
-            # Deep Progression: 3 modes (percentile, zscore default, l2)
+        if position_group in ["deep_progression", "attacking_mid_winger"]:
+            # Deep Progression & AM/W: 3 modes (percentile, zscore default, l2)
             mode = st.radio(
                 "Display Mode:",
                 options=["zscore", "l2", "percentile"],
@@ -427,6 +430,27 @@ def render_tactical_profile_panel(profile_data: Dict[str, Any]) -> None:
     # Render footer note (dynamic based on position group and mode)
     if position_group == "deep_progression":
         cohort_label = "Liga MX Deep Progression Unit (Wing Backs, Full Backs, Defensive & Central Midfielders)"
+        n_dimensions = 7
+        
+        if mode == "zscore":
+            note = (
+                f"📝 **Performance vs League (Percentile Rank):** Percentiles show ranking within cohort. "
+                f"50% = average, 84% = one standard deviation above average, 98% = two standard deviations above average. "
+                f"**Z-scores shown as delta for statistical context.** Based on {cohort_label} ({n_dimensions}D PCA)."
+            )
+        elif mode == "l2":
+            note = (
+                f"📝 **Style Distribution (L2-normalized):** Shows relative distribution of abilities (unit vector). "
+                f"Emphasizes playing style shape rather than magnitude. "
+                f"Based on {cohort_label} ({n_dimensions}D PCA)."
+            )
+        else:  # percentile
+            note = (
+                f"📝 **Percentiles:** Rankings relative to {cohort_label}, 2024/25. "
+                f"50% = median, 90% = top 10%. Data from {n_dimensions}D PCA analysis."
+            )
+    elif position_group == "attacking_mid_winger":
+        cohort_label = "Liga MX Attacking Midfielders & Wingers"
         n_dimensions = 7
         
         if mode == "zscore":

@@ -495,6 +495,12 @@ if computed_data is not None and computed_data.get('rows'):
                                     "📝 **Note:** Percentiles relative to Liga MX Deep Progression Unit players (Full-backs & Midfielders), all seasons. "
                                     "Data computed from PCA analysis (7 tactical dimensions)."
                                 )
+                            elif position_group == "attacking_mid_winger":
+                                st.caption(
+                                    "📝 **Note:** Percentiles relative to Liga MX Attacking Midfielders & Wingers, all seasons. "
+                                    "Data computed from PCA analysis (7 tactical dimensions): Chance Creation, Ball Progression, Width & Crossing, "
+                                    "Defensive Work Rate, Finishing Efficiency, Risk & Verticality, Dribbling Threat."
+                                )
                         else:
                             st.warning(f"⚠️ No tactical profile data available for {player_name}. Player may not have sufficient data for analysis.")
                     
@@ -589,7 +595,7 @@ if computed_data is not None and computed_data.get('rows'):
                             else:
                                 st.warning(f"No similar strikers found for {player_name}.")
                 else:
-                    st.info(f"ℹ️ Tactical profiles are available for Strikers and Deep Progression Unit players (Full-backs & Midfielders). {player_name} plays as {primary_position}, which is not currently supported.")
+                    st.info(f"ℹ️ Tactical profiles are available for Strikers, Deep Progression Unit players (Full-backs & Midfielders), and Attacking Midfielders & Wingers. {player_name} plays as {primary_position}, which is not currently supported.")
     else:
         st.warning("No players match the current filters.")
 

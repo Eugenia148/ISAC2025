@@ -37,6 +37,20 @@ class TacticalProfileService:
             'Left Centre Midfielder',
             'Right Centre Midfielder'
         }
+        
+        # Attacking Midfielders & Wingers position mappings
+        self.attacking_mid_winger_positions = {
+            # Wide Midfielders
+            'Right Midfielder',
+            'Left Midfielder',
+            # Wingers
+            'Right Wing',
+            'Left Wing',
+            # Attacking Midfielders
+            'Right Attacking Midfielder',
+            'Centre Attacking Midfielder',
+            'Left Attacking Midfielder'
+        }
     
     def is_striker(self, primary_position: str, secondary_position: Optional[str] = None) -> bool:
         """Check if a player is a striker based on position."""
@@ -47,12 +61,19 @@ class TacticalProfileService:
         """Check if a player is part of the Deep Progression Unit based on position."""
         return primary_position in self.deep_progression_positions
     
+    def is_attacking_mid_winger(self, primary_position: str, secondary_position: Optional[str] = None) -> bool:
+        """Check if a player is an Attacking Midfielder or Winger based on position."""
+        return (primary_position in self.attacking_mid_winger_positions or 
+                (secondary_position and secondary_position in self.attacking_mid_winger_positions))
+    
     def get_position_group(self, primary_position: str, secondary_position: Optional[str] = None) -> Optional[str]:
         """Determine which position group a player belongs to."""
         if self.is_striker(primary_position, secondary_position):
             return "striker"
         elif self.is_deep_progression(primary_position, secondary_position):
             return "deep_progression"
+        elif self.is_attacking_mid_winger(primary_position, secondary_position):
+            return "attacking_mid_winger"
         return None
     
     def build_striker_profile(
@@ -212,6 +233,89 @@ class TacticalProfileService:
         
         return profile
     
+    def build_attacking_mid_winger_profile(
+        self, 
+        player_id: str, 
+        player_name: str = None,
+        team_name: str = None,
+        primary_position: str = None,
+        secondary_position: str = None,
+        season: str = "2024/25",
+        # Additional stats
+        minutes: int = 0,
+        appearances: int = 0,
+        goals: int = 0,
+        assists: int = 0,
+        foot: str = "—",
+        age: str = "—"
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Build an Attacking Midfielders & Wingers tactical profile payload.
+        
+        Args:
+            player_id: Player identifier
+            player_name: Player name (optional)
+            team_name: Team name (optional)
+            primary_position: Primary position (optional)
+            secondary_position: Secondary position (optional)
+            season: Season identifier (optional)
+            
+        Returns:
+            Profile payload dict or None if player not found or not in AM/W cohort
+        """
+        # Check if player is in AM/W cohort
+        if primary_position and not self.is_attacking_mid_winger(primary_position, secondary_position):
+            return None
+        
+        # Get loader for AM/W artifacts
+        from .loader import TacticalProfileLoader
+        amw_loader = TacticalProfileLoader(artifacts_dir="data/processed/attacking_midfielders_wingers_artifacts")
+        
+        # Get ability scores and percentiles for the specific season
+        season_id = self._extract_season_id(season)
+        ability_scores = amw_loader.get_player_ability_scores(player_id, season_id)
+        percentiles = amw_loader.get_player_percentiles(player_id, season_id)
+        ability_scores_zscore = amw_loader.get_ability_scores_zscore(player_id, season_id)
+        ability_scores_l2 = amw_loader.get_ability_scores_l2(player_id, season_id)
+        
+        # If no data found, return None
+        if not ability_scores and not percentiles:
+            return None
+        
+        # Get league reference
+        league_reference = amw_loader.get_league_reference()
+        
+        # Build profile payload
+        profile = {
+            "player_id": player_id,
+            "player_name": player_name or "Unknown Player",
+            "team_name": team_name or "Unknown Team",
+            "position": self._format_position(primary_position, secondary_position),
+            "season": season,
+            "ability_scores": ability_scores or {},
+            "ability_scores_zscore": ability_scores_zscore or {},
+            "ability_scores_l2": ability_scores_l2 or {},
+            "percentiles": percentiles or {},
+            "league_reference": league_reference or {},
+            # Additional stats
+            "stats": {
+                "minutes": minutes,
+                "appearances": appearances,
+                "goals": goals,
+                "assists": assists,
+                "foot": foot,
+                "age": age
+            },
+            "meta": {
+                "data_version": "v1",
+                "computed_at": "2025-10-23",
+                "is_attacking_mid_winger": True,
+                "position_group": "attacking_mid_winger"
+            }
+        }
+        
+        return profile
+    
     def build_profile(
         self,
         player_id: str,
@@ -253,6 +357,23 @@ class TacticalProfileService:
         # Try Deep Progression Unit
         if self.is_deep_progression(primary_position, secondary_position):
             return self.build_deep_progression_profile(
+                player_id=player_id,
+                player_name=player_name,
+                team_name=team_name,
+                primary_position=primary_position,
+                secondary_position=secondary_position,
+                season=season,
+                minutes=minutes,
+                appearances=appearances,
+                goals=goals,
+                assists=assists,
+                foot=foot,
+                age=age
+            )
+        
+        # Try Attacking Midfielders & Wingers
+        if self.is_attacking_mid_winger(primary_position, secondary_position):
+            return self.build_attacking_mid_winger_profile(
                 player_id=player_id,
                 player_name=player_name,
                 team_name=team_name,

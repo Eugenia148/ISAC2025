@@ -425,10 +425,24 @@ if computed_data is not None and computed_data.get('rows'):
             
             with col2:
                 if st.button("⚖️ Compare Players", type="secondary"):
-                    # Store player_id in session state for navigation
-                    st.session_state['compare_player_id'] = player_id
-                    st.session_state['compare_player_name'] = player_name
-                    st.info("🚧 Player Compare page coming soon! Player ID stored in session state.")
+                    # Store player 1 data in session state
+                    st.session_state['compare_player_1'] = {
+                        'player_id': player_id,
+                        'player_name': player_name,
+                        'team_name': team_name,
+                        'position': position,
+                        'season': selected_season,
+                        'stats': {
+                            'minutes': minutes,
+                            'appearances': appearances,
+                            'goals': goals,
+                            'assists': assists,
+                            'foot': foot,
+                            'age': age
+                        }
+                    }
+                    # Navigate to comparison page
+                    st.switch_page("pages/3_Compare_Players.py")
             
             # Show tactical profile if available
             if st.session_state.get('selected_player_id') == player_id:

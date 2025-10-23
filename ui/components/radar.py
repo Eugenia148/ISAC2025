@@ -240,6 +240,11 @@ def render_tactical_profile_header(profile_data: Dict[str, Any]) -> None:
             except Exception as e:
                 st.info("📈 **Avg Percentile:** N/A")
     
+    # Add role badge row if role_data is provided
+    if profile_data.get("role_data"):
+        from ui.components.player_role_header import render_role_badge
+        render_role_badge(profile_data.get("role_data"))
+    
     # Add a second row for key stats
     if stats:
         col1, col2, col3, col4, col5, col6 = st.columns(6)

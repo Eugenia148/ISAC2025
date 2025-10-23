@@ -17,6 +17,7 @@ class Axis:
     key: str
     label: str
     description: str
+    pca_loadings: Optional[Dict[str, float]] = None
 
 
 class TacticalProfileLoader:
@@ -68,12 +69,42 @@ class TacticalProfileLoader:
             else:
                 # Fallback to hardcoded axes from notebook
                 self._axes = [
-                    Axis("Progressive_Play", "Progressive Play", "Ball progression & link play"),
-                    Axis("Finishing_BoxPresence", "Finishing & Box Presence", "Goal scoring and box positioning"),
-                    Axis("Pressing_WorkRate", "Pressing Work Rate", "Defensive pressure and work rate"),
-                    Axis("Finishing_Efficiency", "Finishing Efficiency", "Shot conversion and efficiency"),
-                    Axis("Dribbling_RiskTaking", "Dribbling & Risk-Taking", "Ball carrying and risk taking"),
-                    Axis("DecisionMaking_Balance", "Decision Making & Balance", "Decision making and balance")
+                    Axis("Progressive_Play", "Progressive Play", "Ball progression & link play",
+                         pca_loadings={
+                             "PC1": "+0.439 (carries)",
+                             "PC2": "-0.216 (passing ratio)",
+                             "PC3": "-0.221 (passing ratio)"
+                         }),
+                    Axis("Finishing_BoxPresence", "Finishing & Box Presence", "Goal scoring and box positioning",
+                         pca_loadings={
+                             "PC1": "-0.194 (inverse)",
+                             "PC2": "-0.186 (inverse)",
+                             "PC3": "+0.477 (touches in box)"
+                         }),
+                    Axis("Pressing_WorkRate", "Pressing Work Rate", "Defensive pressure and work rate",
+                         pca_loadings={
+                             "PC1": "+0.037 (minimal)",
+                             "PC2": "+0.556 (pressures)",
+                             "PC3": "+0.014 (minimal)"
+                         }),
+                    Axis("Finishing_Efficiency", "Finishing Efficiency", "Shot conversion and efficiency",
+                         pca_loadings={
+                             "PC1": "-0.213 (inverse)",
+                             "PC2": "-0.212 (inverse)",
+                             "PC3": "+0.452 (shot accuracy)"
+                         }),
+                    Axis("Dribbling_RiskTaking", "Dribbling & Risk-Taking", "Ball carrying and risk taking",
+                         pca_loadings={
+                             "PC1": "+0.390 (dribbles)",
+                             "PC2": "+0.354 (tackles)",
+                             "PC3": "-0.221 (passing)"
+                         }),
+                    Axis("DecisionMaking_Balance", "Decision Making & Balance", "Decision making and balance",
+                         pca_loadings={
+                             "PC1": "+0.439 (carries)",
+                             "PC2": "+0.521 (pressure regains)",
+                             "PC3": "-0.011 (balanced)"
+                         })
                 ]
         except Exception as e:
             print(f"Error loading axes: {e}")

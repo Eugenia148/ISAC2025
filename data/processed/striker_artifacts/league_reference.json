@@ -1,0 +1,18 @@
+{
+  "percentile_averages": {
+    "Progressive_Play": 50.179211469534046,
+    "Finishing_BoxPresence": 50.179211469534046,
+    "Pressing_WorkRate": 50.179211469534046,
+    "Finishing_Efficiency": 50.179211469534046,
+    "Dribbling_RiskTaking": 50.179211469534046,
+    "DecisionMaking_Balance": 50.179211469534046
+  },
+  "raw_score_averages": {
+    "Progressive_Play": 0.20466581532179703,
+    "Finishing_BoxPresence": 0.5217055703266568,
+    "Pressing_WorkRate": 0.5091141303819566,
+    "Finishing_Efficiency": 0.3880174232051318,
+    "Dribbling_RiskTaking": 0.434524552819586,
+    "DecisionMaking_Balance": 0.5141091859977153
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "cluster_to_role": {
+    "0": "Balanced Striker",
+    "1": "Poacher",
+    "2": "Creator / Pressing Striker"
+  },
+  "role_descriptions": {
+    "Balanced Striker": "Versatile striker with moderate pressing and finishing, limited link play.",
+    "Poacher": "Pure finisher focused on box occupation and scoring, limited pressing and playmaking.",
+    "Creator / Pressing Striker": "High-intensity pressing striker combining excellent playmaking and ball progression with strong defensive engagement."
+  },
+  "minutes_threshold": 500,
+  "n_components_pca": 6,
+  "n_clusters_gmm": 3,
+  "top_k_neighbors": 10
+}

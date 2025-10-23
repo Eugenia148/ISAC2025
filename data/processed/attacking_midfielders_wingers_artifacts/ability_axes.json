@@ -1,0 +1,37 @@
+[
+  {
+    "key": "PC1",
+    "label": "Chance Creation",
+    "description": "How much a player drives shot creation via key passes and involvement in chance chains."
+  },
+  {
+    "key": "PC2",
+    "label": "Ball Progression",
+    "description": "Involvement and reliability advancing play through passes and carries."
+  },
+  {
+    "key": "PC3",
+    "label": "Width & Crossing",
+    "description": "Use of wide spaces and delivery quality into the box."
+  },
+  {
+    "key": "PC4",
+    "label": "Defensive Work Rate",
+    "description": "Pressing intensity and ball-winning contribution from advanced areas."
+  },
+  {
+    "key": "PC5",
+    "label": "Finishing Efficiency",
+    "description": "Shot quality and conversion efficiency in front of goal."
+  },
+  {
+    "key": "PC6",
+    "label": "Risk & Verticality",
+    "description": "Direct, high-risk actions into pressure and dangerous zones."
+  },
+  {
+    "key": "PC7",
+    "label": "Dribbling Threat",
+    "description": "1v1 take-on volume and carry distance to generate threat."
+  }
+]

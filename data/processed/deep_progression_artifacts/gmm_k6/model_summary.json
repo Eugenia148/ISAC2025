@@ -1,0 +1,14 @@
+{
+  "k": 6,
+  "covariance_type": "full",
+  "random_state": 42,
+  "reg_covar": 1e-06,
+  "converged": true,
+  "n_iter": 32,
+  "bic": 2982.601755728296,
+  "aic": 2035.833303172311,
+  "silhouette": 0.18405013757190447,
+  "n_observations": 604,
+  "n_dimensions": 7,
+  "normalization": "L2 (row-wise)"
+}

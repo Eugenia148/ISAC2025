@@ -12,6 +12,63 @@ from api.client import client
 import io
 import base64
 
+# --- UI label mapping (display name shown to users) ---
+DISPLAY_NAME_MAP = {
+    "passes_completed": "Passes Completed",
+    "progressive_passes": "Progressive Passes",
+    "dribbles_succeeded": "Successful Dribbles",
+    "duels_won": "Duels Won",
+    "ball_recoveries": "Ball Recoveries",
+    "carries": "Carries",
+    "carry_length": "Carry Distance",
+    "carry_success_pct": "Carry Success %",
+    "challenge_ratio": "Challenges Won %",
+    "clearances": "Clearances",
+    "conversion_pct": "Shot Conversion %",
+    "deep_completions": "Deep Completions",
+    "obv_total": "OBV (Total Contribution)",
+    "aggressive_actions": "Aggressive Actions",
+    "backward_pass_ratio": "Backward Pass Ratio",
+    "forward_pass_ratio": "Forward Pass Ratio",
+    "box_cross_ratio": "Crosses into Box %",
+    "change_in_passing_ratio": "Change in Pass Direction %",
+    "counterpressure_regains": "Counterpress Recoveries",
+    "op_assists": "Open-Play Assists",
+    "sp_assists": "Set-Piece Assists",
+    "sp_key_passes": "Set-Piece Key Passes",
+    "sp_passes_into_box": "Set-Piece Passes into Box",
+    "sp_xa": "Set-Piece xA",
+    "through_balls": "Through Balls",
+    "touches_in_box": "Touches in Box",
+    "unpressured_long_balls": "Unpressured Long Balls",
+    "shot_on_target_ratio": "Shots on Target %",
+    "shot_touch_ratio": "Shots per Touch",
+    "save_ratio": "Save %",
+    "obv_pass": "OBV (Passing)",
+    "obv_shot": "OBV (Shooting)",
+    # per90 variants
+    "goals_per90": "Goals per 90",
+    "assists_per90": "Assists per 90",
+    "shots_per90": "Shots per 90",
+    "xG_per90": "xG per 90",
+    "xA_per90": "xA per 90",
+    "passes_completed_per90": "Passes Completed per 90",
+    "progressive_passes_per90": "Progressive Passes per 90",
+    "dribbles_succeeded_per90": "Dribbles per 90",
+    "duels_won_per90": "Duels Won per 90",
+}
+
+# Build reverse map for lookups when the user selects a display label
+KEY_BY_DISPLAY = {v: k for k, v in DISPLAY_NAME_MAP.items()}
+
+def to_display_name(key: str) -> str:
+    # default to the key itself if not present in mapping
+    return DISPLAY_NAME_MAP.get(key, key)
+
+def to_key(display: str) -> str:
+    # default to the display itself if not present (when display==key)
+    return KEY_BY_DISPLAY.get(display, display)
+
 # Page configuration
 st.set_page_config(
     page_title="Scatter Plots - Player Analysis",
@@ -336,7 +393,12 @@ def feature_create_scatter_plot(df, x_var, y_var, color_var, colorscale, show_la
             "position": True
         },
         height=700,
-        title=f"{y_var} vs {x_var} (colored by {color_var})"
+        title=f"{to_display_name(y_var)} vs {to_display_name(x_var)} (colored by {to_display_name(color_var)})",
+        labels={
+            x_var: to_display_name(x_var), 
+            y_var: to_display_name(y_var), 
+            color_var: to_display_name(color_var)
+        }
     )
     
     # Add median reference lines
@@ -344,9 +406,9 @@ def feature_create_scatter_plot(df, x_var, y_var, color_var, colorscale, show_la
     y_median = df[y_var].median()
     
     fig.add_vline(x=x_median, line_dash="dash", line_color="red", 
-                  annotation_text=f"Median {x_var}: {x_median:.2f}")
+                  annotation_text=f"Median {to_display_name(x_var)}: {x_median:.2f}")
     fig.add_hline(y=y_median, line_dash="dash", line_color="red", 
-                  annotation_text=f"Median {y_var}: {y_median:.2f}")
+                  annotation_text=f"Median {to_display_name(y_var)}: {y_median:.2f}")
     
     # Add player labels if requested
     if show_labels:
@@ -434,26 +496,39 @@ if player_data is not None and len(player_data) > 0:
             )
         
         # X-axis variable
-        x_var = st.selectbox(
+        available_metrics_list = available_metrics['all']
+        display_options = [to_display_name(k) for k in available_metrics_list]
+        display_options = sorted(display_options)  # nice UI ordering
+        
+        default_x_key = 'xA'
+        default_y_key = 'duels_won'
+        default_color_key = 'minutes_played'
+        
+        x_display = st.selectbox(
             "X-axis Variable",
-            options=available_metrics['all'],
-            index=available_metrics['all'].index('xA') if 'xA' in available_metrics['all'] else 0
+            options=display_options,
+            index=display_options.index(to_display_name(default_x_key)) if to_display_name(default_x_key) in display_options else 0
         )
     
     with col2:
         # Y-axis variable
-        y_var = st.selectbox(
+        y_display = st.selectbox(
             "Y-axis Variable",
-            options=available_metrics['all'],
-            index=available_metrics['all'].index('duels_won') if 'duels_won' in available_metrics['all'] else 1
+            options=display_options,
+            index=display_options.index(to_display_name(default_y_key)) if to_display_name(default_y_key) in display_options else 1
         )
         
         # Color variable
-        color_var = st.selectbox(
+        color_display = st.selectbox(
             "Color Variable",
-            options=available_metrics['all'],
-            index=available_metrics['all'].index('minutes_played') if 'minutes_played' in available_metrics['all'] else 2
+            options=display_options,
+            index=display_options.index(to_display_name(default_color_key)) if to_display_name(default_color_key) in display_options else 2
         )
+        
+        # Map selected display labels back to internal metric keys
+        x_var = to_key(x_display)
+        y_var = to_key(y_display)
+        color_var = to_key(color_display)
     
     with col3:
         # Colorscale
@@ -488,10 +563,15 @@ if player_data is not None and len(player_data) > 0:
         else:
             st.info(f"Showing {len(filtered_data)} players")
             
-            # Create scatter plot
-            fig = feature_create_scatter_plot(
-                filtered_data, x_var, y_var, color_var, colorscale, show_labels
-            )
+            # Check if selected metrics exist in the dataframe
+            missing = [c for c in [x_var, y_var, color_var] if c not in filtered_data.columns]
+            if missing:
+                st.warning(f"Selected metric(s) not available in data: {', '.join(missing)}")
+            else:
+                # Create scatter plot
+                fig = feature_create_scatter_plot(
+                    filtered_data, x_var, y_var, color_var, colorscale, show_labels
+                )
             
             if fig:
                 st.plotly_chart(fig, width="stretch")

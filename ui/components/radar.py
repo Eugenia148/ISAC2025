@@ -455,3 +455,41 @@ def render_tactical_profile_panel(profile_data: Dict[str, Any]) -> None:
         )
     
     st.caption(note)
+
+    # Add PCA component explanations for non-striker tactical profiles
+    if position_group == "deep_progression":
+        _render_pca_component_explanations()
+
+
+def _render_pca_component_explanations() -> None:
+    """Render concise PCA component explanations for defenders/midfielders."""
+    st.markdown("---")
+    st.subheader("🧠 PCA Components — What they mean")
+    with st.expander("Show PC1–PC6 explanations", expanded=False):
+        st.markdown(
+            """
+            - **⚙️ PC1 – Build-Up & Ball Progression**  
+              **Top features**: op_passes_90, op_xgbuildup_90, xgbuildup_90, forward_pass_proportion, interceptions_90  
+              **Interpretation**: How involved a defender is in constructing play from the back. High = ball-playing profiles who drive buildup; low = safety-first, stop-first defenders.
+
+            - **🛡️ PC2 – Defensive Interventions & Aggressiveness**  
+              **Top features**: padj_interceptions_90, interceptions_90, padj_tackles_90, defensive_actions_90, tackles_90  
+              **Interpretation**: Defensive activity and anticipation. High = proactive stoppers who step out, intercept and tackle; suited to pressing systems.
+
+            - **🪂 PC3 – Defensive Duels & Aerial Engagement**  
+              **Top features**: aerial_wins_90, defensive_actions_90, tackles_90, interceptions_90  
+              **Interpretation**: Physical presence and duel intensity, especially aerially. High = strong 1v1 and aerial dominance.
+
+            - **🧱 PC4 – Defensive Solidity & Clearances**  
+              **Top features**: aerial_wins_90, clearance_90, aerial_ratio, defensive_actions_90, tackles_90  
+              **Interpretation**: Reactive, safety-first defending. High = frequent clearances and headers under pressure; ideal in low blocks.
+
+            - **📈 PC5 – Distribution Style & Direction**  
+              **Top features**: xgbuildup_90, sideways_pass_proportion, op_xgbuildup_90, forward_pass_proportion, long_ball_ratio  
+              **Interpretation**: Passing type and direction in possession. High = lateral circulation or progressive long balls (circulators vs vertical distributors).
+
+            - **🧍 PC6 – Defensive Coverage & Risk Management**  
+              **Top features**: blocks_per_shot, backward_pass_proportion, aerial_ratio, forward_pass_proportion  
+              **Interpretation**: Balance between defensive security and forward involvement. High = cautious passing plus strong blocking/cover positions.
+            """
+        )

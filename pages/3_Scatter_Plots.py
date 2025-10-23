@@ -56,6 +56,15 @@ def feature_fetch_player_data(api_client, *, competition_id: int, season_id: int
         if len(df) == 0:
             return None
         
+        # Fix stat name mapping based on StatsBomb API v4.0.0/v5.0.0
+        df.rename(columns={
+            "player_season_np_shots_90": "shots",
+            "player_season_np_xg_90": "xG",
+            "player_season_op_passes_90": "passes_completed",
+            "player_season_deep_progressions_90": "progressive_passes",
+            "player_season_aerial_wins_90": "duels_won"
+        }, inplace=True)
+        
         # Check if this is player-level data
         if "player_name" not in df.columns:
             # Team-level fallback - create basic structure
@@ -72,13 +81,14 @@ def feature_fetch_player_data(api_client, *, competition_id: int, season_id: int
             'player_season_minutes': 0,
             'player_season_goals_90': 0,
             'player_season_assists_90': 0,
-            'player_season_shots_90': 0,
-            'player_season_xg_90': 0,
             'player_season_xa_90': 0,
-            'player_season_passes_90': 0,
-            'player_season_progressive_passes_90': 0,
             'player_season_dribbles_90': 0,
-            'player_season_duels_90': 0
+            # Add the corrected field names
+            'shots': 0,
+            'xG': 0,
+            'passes_completed': 0,
+            'progressive_passes': 0,
+            'duels_won': 0
         }
         
         for col, default_val in required_columns.items():
@@ -89,13 +99,20 @@ def feature_fetch_player_data(api_client, *, competition_id: int, season_id: int
         minutes = df['player_season_minutes']
         df['goals'] = (df['player_season_goals_90'] * minutes / 90).round(2)
         df['assists'] = (df['player_season_assists_90'] * minutes / 90).round(2)
-        df['shots'] = (df['player_season_shots_90'] * minutes / 90).round(2)
-        df['xG'] = (df['player_season_xg_90'] * minutes / 90).round(2)
         df['xA'] = (df['player_season_xa_90'] * minutes / 90).round(2)
-        df['passes_completed'] = (df['player_season_passes_90'] * minutes / 90).round(2)
-        df['progressive_passes'] = (df['player_season_progressive_passes_90'] * minutes / 90).round(2)
         df['dribbles_succeeded'] = (df['player_season_dribbles_90'] * minutes / 90).round(2)
-        df['duels_won'] = (df['player_season_duels_90'] * minutes / 90).round(2)
+        
+        # For the corrected fields, calculate totals from per90 values
+        if 'shots' in df.columns:
+            df['shots'] = (df['shots'] * minutes / 90).round(2)
+        if 'xG' in df.columns:
+            df['xG'] = (df['xG'] * minutes / 90).round(2)
+        if 'passes_completed' in df.columns:
+            df['passes_completed'] = (df['passes_completed'] * minutes / 90).round(2)
+        if 'progressive_passes' in df.columns:
+            df['progressive_passes'] = (df['progressive_passes'] * minutes / 90).round(2)
+        if 'duels_won' in df.columns:
+            df['duels_won'] = (df['duels_won'] * minutes / 90).round(2)
         
         # Create per90 metrics for applicable columns
         per90_metrics = ['goals', 'assists', 'shots', 'xG', 'xA', 'passes_completed', 
@@ -103,6 +120,7 @@ def feature_fetch_player_data(api_client, *, competition_id: int, season_id: int
         
         for metric in per90_metrics:
             if metric in df.columns:
+                # Calculate per90 from total values
                 df[f"{metric}_per90"] = (90 * df[metric] / minutes).round(2)
                 # Handle division by zero
                 df[f"{metric}_per90"] = df[f"{metric}_per90"].fillna(0)
@@ -362,7 +380,7 @@ if player_data is not None and len(player_data) > 0:
             )
             
             if fig:
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
                 
                 # Table and downloads section
                 st.markdown("---")

@@ -5,22 +5,22 @@ Centralized API client that handles authentication and provides clean methods fo
 
 import os
 from typing import Optional, Dict, List
-from dotenv import load_dotenv
+import streamlit as st  # Add this import
 from statsbombpy import sb
 import warnings
 import requests
 from requests.auth import HTTPBasicAuth
 
-# Load environment variables once
-load_dotenv()
+# Remove: load_dotenv() - not needed for Streamlit secrets
 
 class StatsBombClient:
     """Centralized StatsBomb API client with authentication."""
     
     def __init__(self):
-        """Initialize the client with credentials."""
-        self.username = os.getenv('SB_USERNAME')
-        self.password = os.getenv('SB_PASSWORD')
+        """Initialize the client with credentials from Streamlit secrets."""
+        # Get credentials from Streamlit secrets
+        self.username = st.secrets["SB_USERNAME"]
+        self.password = st.secrets["SB_PASSWORD"]
         self.has_credentials = bool(self.username and self.password)
         
         if self.has_credentials:

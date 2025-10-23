@@ -110,6 +110,20 @@ def feature_fetch_player_data(api_client, *, competition_id: int, season_id: int
             "player_season_lateral_pass_proportion": "lateral_pass_ratio",
         })
         
+        # Add OBV component metrics
+        RENAME_MAP.update({
+            "player_season_obv_pass_90": "obv_pass",
+            "player_season_obv_carry_90": "obv_carry",
+            "player_season_obv_shot_90": "obv_shot",
+            "player_season_obv_defense_90": "obv_defense",
+            "player_season_obv_duel_90": "obv_duel",
+            "player_season_obv_set_play_90": "obv_setplay",
+            "player_season_obv_dribble_90": "obv_dribble",
+            "player_season_obv_cross_90": "obv_cross",
+            "player_season_obv_reception_90": "obv_reception",
+            "player_season_obv_turnover_90": "obv_turnover",
+        })
+        
         # Apply rename only for keys that exist in df
         df.rename(columns={k: v for k, v in RENAME_MAP.items() if k in df.columns}, inplace=True)
         
@@ -239,6 +253,17 @@ def feature_get_available_metrics(df):
         # Pass direction ratio metrics
         "forward_pass_ratio",
         "lateral_pass_ratio",
+        # OBV component metrics
+        "obv_pass",
+        "obv_carry",
+        "obv_shot",
+        "obv_defense",
+        "obv_duel",
+        "obv_setplay",
+        "obv_dribble",
+        "obv_cross",
+        "obv_reception",
+        "obv_turnover",
     ]
     
     # Combine all candidates

@@ -17,6 +17,7 @@ class Axis:
     key: str
     label: str
     description: str
+    pca_loadings: Optional[Dict[str, float]] = None
 
 
 class TacticalProfileLoader:
@@ -24,6 +25,19 @@ class TacticalProfileLoader:
     
     def __init__(self, artifacts_dir: str = "data/processed/striker_artifacts"):
         """Initialize the loader with artifacts directory."""
+        # Use absolute path if relative path doesn't exist
+        if not os.path.exists(artifacts_dir):
+            # Try to find the correct path
+            possible_paths = [
+                "C:/Users/carls/OneDrive/Dokumente/Uni/05 Semester/Marketing y Estrategia de Deportes/Projekt/Repo/ISAC2025/data/processed/striker_artifacts",
+                "data/processed/striker_artifacts",
+                "../data/processed/striker_artifacts"
+            ]
+            for path in possible_paths:
+                if os.path.exists(path):
+                    artifacts_dir = path
+                    break
+        
         self.artifacts_dir = artifacts_dir
         self._axes: Optional[List[Axis]] = None
         self._ability_scores: Optional[pd.DataFrame] = None
@@ -55,12 +69,42 @@ class TacticalProfileLoader:
             else:
                 # Fallback to hardcoded axes from notebook
                 self._axes = [
-                    Axis("Progressive_Play", "Progressive Play", "Ball progression & link play"),
-                    Axis("Finishing_BoxPresence", "Finishing & Box Presence", "Goal scoring and box positioning"),
-                    Axis("Pressing_WorkRate", "Pressing Work Rate", "Defensive pressure and work rate"),
-                    Axis("Finishing_Efficiency", "Finishing Efficiency", "Shot conversion and efficiency"),
-                    Axis("Dribbling_RiskTaking", "Dribbling & Risk-Taking", "Ball carrying and risk taking"),
-                    Axis("DecisionMaking_Balance", "Decision Making & Balance", "Decision making and balance")
+                    Axis("Progressive_Play", "Progressive Play", "Ball progression & link play",
+                         pca_loadings={
+                             "PC1": "+0.439 (carries)",
+                             "PC2": "-0.216 (passing ratio)",
+                             "PC3": "-0.221 (passing ratio)"
+                         }),
+                    Axis("Finishing_BoxPresence", "Finishing & Box Presence", "Goal scoring and box positioning",
+                         pca_loadings={
+                             "PC1": "-0.194 (inverse)",
+                             "PC2": "-0.186 (inverse)",
+                             "PC3": "+0.477 (touches in box)"
+                         }),
+                    Axis("Pressing_WorkRate", "Pressing Work Rate", "Defensive pressure and work rate",
+                         pca_loadings={
+                             "PC1": "+0.037 (minimal)",
+                             "PC2": "+0.556 (pressures)",
+                             "PC3": "+0.014 (minimal)"
+                         }),
+                    Axis("Finishing_Efficiency", "Finishing Efficiency", "Shot conversion and efficiency",
+                         pca_loadings={
+                             "PC1": "-0.213 (inverse)",
+                             "PC2": "-0.212 (inverse)",
+                             "PC3": "+0.452 (shot accuracy)"
+                         }),
+                    Axis("Dribbling_RiskTaking", "Dribbling & Risk-Taking", "Ball carrying and risk taking",
+                         pca_loadings={
+                             "PC1": "+0.390 (dribbles)",
+                             "PC2": "+0.354 (tackles)",
+                             "PC3": "-0.221 (passing)"
+                         }),
+                    Axis("DecisionMaking_Balance", "Decision Making & Balance", "Decision making and balance",
+                         pca_loadings={
+                             "PC1": "+0.439 (carries)",
+                             "PC2": "+0.521 (pressure regains)",
+                             "PC3": "-0.011 (balanced)"
+                         })
                 ]
         except Exception as e:
             print(f"Error loading axes: {e}")
@@ -139,8 +183,8 @@ class TacticalProfileLoader:
         self._load_artifacts_if_needed()
         return self._axes or []
     
-    def get_player_ability_scores(self, player_id: str) -> Optional[Dict[str, float]]:
-        """Get ability scores for a specific player."""
+    def get_player_ability_scores(self, player_id: str, season_id: str = None) -> Optional[Dict[str, float]]:
+        """Get ability scores for a specific player and season."""
         self._load_artifacts_if_needed()
         
         if self._ability_scores.empty:
@@ -150,25 +194,31 @@ class TacticalProfileLoader:
             # Try to find player by player_season_id or player_id
             player_data = None
             
-            # First try player_season_id format
-            if player_id in self._ability_scores.index:
-                player_data = self._ability_scores.loc[player_id]
+            if season_id:
+                # Look for specific player_season_id
+                player_season_id = f"{player_id}_{season_id}"
+                if player_season_id in self._ability_scores.index:
+                    player_data = self._ability_scores.loc[player_season_id]
             else:
-                # Try to find by extracting player_id from player_season_id
-                for idx in self._ability_scores.index:
-                    if str(idx).startswith(str(player_id) + '_'):
-                        player_data = self._ability_scores.loc[idx]
-                        break
+                # First try player_season_id format
+                if player_id in self._ability_scores.index:
+                    player_data = self._ability_scores.loc[player_id]
+                else:
+                    # Try to find by extracting player_id from player_season_id
+                    for idx in self._ability_scores.index:
+                        if str(idx).startswith(str(player_id) + '_'):
+                            player_data = self._ability_scores.loc[idx]
+                            break
             
             if player_data is not None:
                 return player_data.to_dict()
             return None
         except Exception as e:
-            print(f"Error getting ability scores for player {player_id}: {e}")
+            print(f"Error getting ability scores for player {player_id} season {season_id}: {e}")
             return None
     
-    def get_player_percentiles(self, player_id: str) -> Optional[Dict[str, float]]:
-        """Get percentile scores for a specific player."""
+    def get_player_percentiles(self, player_id: str, season_id: str = None) -> Optional[Dict[str, float]]:
+        """Get percentile scores for a specific player and season."""
         self._load_artifacts_if_needed()
         
         if self._percentiles.empty:
@@ -178,21 +228,27 @@ class TacticalProfileLoader:
             # Try to find player by player_season_id or player_id
             player_data = None
             
-            # First try player_season_id format
-            if player_id in self._percentiles.index:
-                player_data = self._percentiles.loc[player_id]
+            if season_id:
+                # Look for specific player_season_id
+                player_season_id = f"{player_id}_{season_id}"
+                if player_season_id in self._percentiles.index:
+                    player_data = self._percentiles.loc[player_season_id]
             else:
-                # Try to find by extracting player_id from player_season_id
-                for idx in self._percentiles.index:
-                    if str(idx).startswith(str(player_id) + '_'):
-                        player_data = self._percentiles.loc[idx]
-                        break
+                # First try player_season_id format
+                if player_id in self._percentiles.index:
+                    player_data = self._percentiles.loc[player_id]
+                else:
+                    # Try to find by extracting player_id from player_season_id
+                    for idx in self._percentiles.index:
+                        if str(idx).startswith(str(player_id) + '_'):
+                            player_data = self._percentiles.loc[idx]
+                            break
             
             if player_data is not None:
                 return player_data.to_dict()
             return None
         except Exception as e:
-            print(f"Error getting percentiles for player {player_id}: {e}")
+            print(f"Error getting percentiles for player {player_id} season {season_id}: {e}")
             return None
     
     def get_league_reference(self) -> Optional[Dict[str, float]]:

@@ -33,7 +33,14 @@ class TacticalProfileService:
         team_name: str = None,
         primary_position: str = None,
         secondary_position: str = None,
-        season: str = "2024/25"
+        season: str = "2024/25",
+        # Additional stats
+        minutes: int = 0,
+        appearances: int = 0,
+        goals: int = 0,
+        assists: int = 0,
+        foot: str = "—",
+        age: str = "—"
     ) -> Optional[Dict[str, Any]]:
         """
         Build a striker tactical profile payload.
@@ -53,9 +60,10 @@ class TacticalProfileService:
         if primary_position and not self.is_striker(primary_position, secondary_position):
             return None
         
-        # Get ability scores and percentiles
-        ability_scores = self.loader.get_player_ability_scores(player_id)
-        percentiles = self.loader.get_player_percentiles(player_id)
+        # Get ability scores and percentiles for the specific season
+        season_id = self._extract_season_id(season)
+        ability_scores = self.loader.get_player_ability_scores(player_id, season_id)
+        percentiles = self.loader.get_player_percentiles(player_id, season_id)
         
         # If no data found, return None
         if not ability_scores and not percentiles:
@@ -74,6 +82,15 @@ class TacticalProfileService:
             "ability_scores": ability_scores or {},
             "percentiles": percentiles or {},
             "league_reference": league_reference or {},
+            # Additional stats
+            "stats": {
+                "minutes": minutes,
+                "appearances": appearances,
+                "goals": goals,
+                "assists": assists,
+                "foot": foot,
+                "age": age
+            },
             "meta": {
                 "data_version": "v1",
                 "computed_at": "2025-10-21",
@@ -92,6 +109,16 @@ class TacticalProfileService:
             return f"{primary_position} / {secondary_position}"
         else:
             return primary_position
+    
+    def _extract_season_id(self, season: str) -> Optional[str]:
+        """Extract season ID from season string."""
+        season_mapping = {
+            "2024/25": "317",
+            "2023/24": "281", 
+            "2022/23": "235",
+            "2021/22": "108"
+        }
+        return season_mapping.get(season)
     
     def get_profile_summary(self, player_id: str) -> Optional[Dict[str, Any]]:
         """

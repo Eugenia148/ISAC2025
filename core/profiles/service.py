@@ -497,6 +497,108 @@ class TacticalProfileService:
         
         return result
     
+    def get_player_evolution(
+        self,
+        player_id: str,
+        current_season_id: int,
+        position_group: str,
+        player_name: str = None,
+        team_name: str = None,
+        primary_position: str = None,
+        secondary_position: str = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Get player's radar data from previous seasons.
+        
+        Args:
+            player_id: Player identifier
+            current_season_id: Current season being viewed (e.g., 317)
+            position_group: "striker", "deep_progression", or "attacking_mid_winger"
+            player_name: Player name (optional)
+            team_name: Team name (optional)
+            primary_position: Primary position (optional)
+            secondary_position: Secondary position (optional)
+            
+        Returns:
+            List of profile dicts (simplified), ordered chronologically (oldest first)
+        """
+        # Season mapping
+        season_map = {317: "24/25", 281: "23/24", 235: "22/23", 108: "21/22"}
+        season_order = [108, 235, 281, 317]  # Chronological order
+        
+        # Get index of current season
+        try:
+            current_idx = season_order.index(current_season_id)
+        except ValueError:
+            return []  # Invalid season_id
+        
+        # Get up to 2 previous seasons
+        previous_seasons = []
+        for i in range(max(0, current_idx - 2), current_idx):
+            previous_seasons.append(season_order[i])
+        
+        if not previous_seasons:
+            return []
+        
+        # Load appropriate artifacts based on position group
+        if position_group == "striker":
+            loader = self.loader  # Use default striker loader
+        elif position_group == "deep_progression":
+            from .loader import TacticalProfileLoader
+            loader = TacticalProfileLoader("data/processed/deep_progression_artifacts")
+        elif position_group == "attacking_mid_winger":
+            from .loader import TacticalProfileLoader
+            loader = TacticalProfileLoader("data/processed/attacking_midfielders_wingers_artifacts")
+        else:
+            return []
+        
+        # Build profile for each previous season
+        evolution_profiles = []
+        for season_id in previous_seasons:
+            season_display = season_map.get(season_id, str(season_id))
+            
+            # Get ability scores and percentiles for this season
+            ability_scores = loader.get_player_ability_scores(player_id, season_id)
+            percentiles = loader.get_player_percentiles(player_id, season_id)
+            
+            # Skip if no data found
+            if not ability_scores and not percentiles:
+                continue
+            
+            # For non-striker position groups, also load z-score and L2 data
+            ability_scores_zscore = {}
+            ability_scores_l2 = {}
+            if position_group in ["deep_progression", "attacking_mid_winger"]:
+                ability_scores_zscore = loader.get_ability_scores_zscore(player_id, season_id)
+                ability_scores_l2 = loader.get_ability_scores_l2(player_id, season_id)
+            
+            # Get league reference
+            league_reference = loader.get_league_reference()
+            
+            # Build simplified profile
+            profile = {
+                "player_id": player_id,
+                "player_name": player_name or "Unknown Player",
+                "team_name": team_name or "Unknown Team",
+                "position": self._format_position(primary_position, secondary_position),
+                "season": season_display,
+                "ability_scores": ability_scores or {},
+                "ability_scores_zscore": ability_scores_zscore or {},
+                "ability_scores_l2": ability_scores_l2 or {},
+                "percentiles": percentiles or {},
+                "league_reference": league_reference or {},
+                "stats": {},  # Empty stats for historical data
+                "meta": {
+                    "data_version": "v1",
+                    "position_group": position_group,
+                    "is_historical": True
+                }
+            }
+            
+            evolution_profiles.append(profile)
+        
+        return evolution_profiles
+    
     def _parse_season_from_id(self, player_season_id: str) -> str:
         """Extract season display from player_season_id."""
         try:

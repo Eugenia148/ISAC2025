@@ -479,3 +479,55 @@ def render_tactical_profile_panel(profile_data: Dict[str, Any]) -> None:
         )
     
     st.caption(note)
+    
+    # Player Evolution Section
+    st.markdown("---")
+    
+    with st.expander("📈 Player Evolution", expanded=False):
+        # Get evolution data using the service
+        from core.profiles.service import get_service
+        service = get_service()
+        
+        # Extract necessary data from profile
+        player_id = profile_data.get("player_id")
+        player_name = profile_data.get("player_name")
+        team_name = profile_data.get("team_name")
+        season_str = profile_data.get("season", "24/25")
+        
+        # Map season display to season_id
+        season_map = {"24/25": 317, "23/24": 281, "22/23": 235, "21/22": 108}
+        current_season_id = season_map.get(season_str, 317)
+        
+        # Get primary and secondary positions from the position string
+        position_str = profile_data.get("position", "")
+        positions = position_str.split(" / ") if " / " in position_str else [position_str]
+        primary_position = positions[0] if positions else ""
+        secondary_position = positions[1] if len(positions) > 1 else None
+        
+        # Get evolution data
+        evolution_data = service.get_player_evolution(
+            player_id=player_id,
+            current_season_id=current_season_id,
+            position_group=position_group,
+            player_name=player_name,
+            team_name=team_name,
+            primary_position=primary_position,
+            secondary_position=secondary_position
+        )
+        
+        if not evolution_data:
+            st.info("No previous season data available for this player.")
+        else:
+            # Create columns for horizontal layout
+            cols = st.columns(len(evolution_data))
+            
+            for idx, (col, season_profile) in enumerate(zip(cols, evolution_data)):
+                with col:
+                    st.markdown(f"**Season {season_profile['season']}**")
+                    # Render smaller radar using existing component (use same mode)
+                    render_tactical_profile_radar(
+                        season_profile,
+                        mode=mode,
+                        show_league_average=False,
+                        chart_height=400  # Smaller size for evolution
+                    )

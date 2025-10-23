@@ -65,6 +65,54 @@ def feature_fetch_player_data(api_client, *, competition_id: int, season_id: int
             "player_season_aerial_wins_90": "duels_won"
         }, inplace=True)
         
+        # Map API fields → friendly aliases for new Season v4 stats
+        RENAME_MAP = {
+            # New, safe Season v4 stats (do not overlap with existing UI)
+            "player_season_aerial_wins_90": "aerial_wins",
+            "player_season_ball_recoveries_90": "ball_recoveries",
+            "player_season_carries_90": "carries",
+            "player_season_carry_length": "carry_length",
+            "player_season_carry_ratio": "carry_success_pct",
+            "player_season_challenge_ratio": "challenge_ratio",
+            "player_season_clearance_90": "clearances",
+            "player_season_conversion_ratio": "conversion_pct",
+            "player_season_deep_completions_90": "deep_completions",
+            "player_season_obv_90": "obv_total",
+        }
+        
+        # Add additional 20 Season v4 stats
+        RENAME_MAP.update({
+            "player_season_aggressive_actions_90": "aggressive_actions",
+            "player_season_backward_pass_proportion": "backward_pass_ratio",
+            "player_season_blocks_per_shot": "blocks_per_shot",
+            "player_season_box_cross_ratio": "box_cross_ratio",
+            "player_season_change_in_passing_ratio": "change_in_passing_ratio",
+            "player_season_counterpressure_regains_90": "counterpressure_regains",
+            "player_season_op_assists_90": "op_assists",
+            "player_season_sp_assists_90": "sp_assists",
+            "player_season_sp_key_passes_90": "sp_key_passes",
+            "player_season_sp_passes_into_box_90": "sp_passes_into_box",
+            "player_season_sp_xa_90": "sp_xa",
+            "player_season_through_balls_90": "through_balls",
+            "player_season_touches_inside_box_90": "touches_in_box",
+            "player_season_turnovers_90": "turnovers",
+            "player_season_unpressured_long_balls_90": "unpressured_long_balls",
+            "player_season_red_cards_90": "red_cards",
+            "player_season_second_yellow_cards_90": "second_yellows",
+            "player_season_shot_on_target_ratio": "shot_on_target_ratio",
+            "player_season_shot_touch_ratio": "shot_touch_ratio",
+            "player_season_save_ratio": "save_ratio",
+        })
+        
+        # Add pass direction ratio metrics
+        RENAME_MAP.update({
+            "player_season_forward_pass_proportion": "forward_pass_ratio",
+            "player_season_lateral_pass_proportion": "lateral_pass_ratio",
+        })
+        
+        # Apply rename only for keys that exist in df
+        df.rename(columns={k: v for k, v in RENAME_MAP.items() if k in df.columns}, inplace=True)
+        
         # Check if this is player-level data
         if "player_name" not in df.columns:
             # Team-level fallback - create basic structure
@@ -114,7 +162,7 @@ def feature_fetch_player_data(api_client, *, competition_id: int, season_id: int
         if 'duels_won' in df.columns:
             df['duels_won'] = (df['duels_won'] * minutes / 90).round(2)
         
-        # Create per90 metrics for applicable columns
+        # Create per90 metrics for applicable columns (exclude new Season v4 metrics as they're already per90)
         per90_metrics = ['goals', 'assists', 'shots', 'xG', 'xA', 'passes_completed', 
                          'progressive_passes', 'dribbles_succeeded', 'duels_won']
         
@@ -152,19 +200,60 @@ def feature_get_available_metrics(df):
         return {'basic': [], 'per90': []}
     
     # Define metric categories
-    basic_metrics = ['goals', 'assists', 'shots', 'xG', 'xA', 'passes_completed', 
-                     'progressive_passes', 'dribbles_succeeded', 'duels_won', 'minutes_played']
+    BASE_METRICS = ['goals', 'assists', 'shots', 'xG', 'xA', 'passes_completed', 
+                    'progressive_passes', 'dribbles_succeeded', 'duels_won', 'minutes_played']
     
-    per90_metrics = [col for col in df.columns if col.endswith('_per90')]
+    # New Season v4 metrics
+    NEW_METRICS = [
+        "aerial_wins",
+        "ball_recoveries",
+        "carries",
+        "carry_length",
+        "carry_success_pct",
+        "challenge_ratio",
+        "clearances",
+        "conversion_pct",
+        "deep_completions",
+        "obv_total",
+        # Additional 20 Season v4 stats
+        "aggressive_actions",
+        "backward_pass_ratio",
+        "blocks_per_shot",
+        "box_cross_ratio",
+        "change_in_passing_ratio",
+        "counterpressure_regains",
+        "op_assists",
+        "sp_assists",
+        "sp_key_passes",
+        "sp_passes_into_box",
+        "sp_xa",
+        "through_balls",
+        "touches_in_box",
+        "turnovers",
+        "unpressured_long_balls",
+        "red_cards",
+        "second_yellows",
+        "shot_on_target_ratio",
+        "shot_touch_ratio",
+        "save_ratio",
+        # Pass direction ratio metrics
+        "forward_pass_ratio",
+        "lateral_pass_ratio",
+    ]
+    
+    # Combine all candidates
+    ALL_CANDIDATES = BASE_METRICS + NEW_METRICS
     
     # Filter to only include metrics that exist in the dataframe
-    available_basic = [col for col in basic_metrics if col in df.columns]
+    available_metrics = [m for m in ALL_CANDIDATES if m in df.columns]
+    
+    per90_metrics = [col for col in df.columns if col.endswith('_per90')]
     available_per90 = [col for col in per90_metrics if col in df.columns]
     
     return {
-        'basic': available_basic,
+        'basic': available_metrics,
         'per90': available_per90,
-        'all': available_basic + available_per90
+        'all': available_metrics + available_per90
     }
 
 

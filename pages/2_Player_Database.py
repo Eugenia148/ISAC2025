@@ -18,6 +18,8 @@ from ui.components.radar import render_tactical_profile_panel
 from ui.components.performance_radar import render_performance_profile_panel
 from ui.components.player_role_header import render_player_role_section
 
+from ui.components.radar import render_tactical_profile_panel
+
 # Page configuration
 st.set_page_config(
     page_title="Player Database – Liga MX",
@@ -345,6 +347,21 @@ if computed_data is not None and computed_data.get('rows'):
     
     with col3:
         # Age range filter
+        # Minutes filter
+        max_minutes = int(max([row.get('Minutes', 0) for row in rows])) if rows else 0
+        
+        if max_minutes > 0:
+            min_minutes = st.slider(
+                "⏱️ Min Minutes",
+                min_value=0,
+                max_value=max_minutes,
+                value=0,
+                step=1
+            )
+        else:
+            st.info("No minute data available.")
+            min_minutes = 0
+
         age_min, age_max = computed_data.get('age_min', 0), computed_data.get('age_max', 0)
         if age_min > 0 and age_max > 0:
             age_range = st.slider(
@@ -355,16 +372,6 @@ if computed_data is not None and computed_data.get('rows'):
             )
         else:
             age_range = (0, 100)
-        
-        # Minutes filter
-        max_minutes = int(max([row.get('Minutes', 0) for row in rows])) if rows else 0
-        min_minutes = st.slider(
-            "⏱️ Min Minutes",
-            min_value=0,
-            max_value=max_minutes,
-            value=0,
-            step=1
-        )
     
     # Apply filters
     filtered_rows = feature_filter_rows(
@@ -445,9 +452,10 @@ if computed_data is not None and computed_data.get('rows'):
                     st.switch_page("pages/3_Compare_Players.py")
             
             # Show tactical profile if available
+            # Show tactical profile if available
             if st.session_state.get('selected_player_id') == player_id:
                 st.divider()
-                
+            
                 # Get tactical profile service
                 service = get_service()
                 
@@ -483,7 +491,6 @@ if computed_data is not None and computed_data.get('rows'):
                             primary_position=primary_position,
                             secondary_position=secondary_position,
                             season=selected_season,
-                            # Additional stats
                             minutes=minutes,
                             appearances=appearances,
                             goals=goals,
@@ -491,6 +498,29 @@ if computed_data is not None and computed_data.get('rows'):
                             foot=foot,
                             age=age
                         )
+            
+                        # =========================
+                        # 📊 BLOCK FOR DEFENDERS
+                        # =========================
+                        if position_group == "center_back":
+                            profile = {
+                                "player_name": player_name,
+                                "team_name": team_name,
+                                "PC1": row["PC1"],
+                                "PC2": row["PC2"],
+                                "PC3": row["PC3"],
+                                "PC4": row["PC4"],
+                                "PC5": row["PC5"],
+                                "PC6": row["PC6"],
+                                "stats": {
+                                    "minutes": minutes,
+                                    "appearances": appearances,
+                                    "goals": goals,
+                                    "assists": assists,
+                                    "foot": foot,
+                                    "age": age
+                                }
+                            }
                         
                         # Add role data for strikers
                         if position_group == "striker" and profile:
@@ -516,8 +546,8 @@ if computed_data is not None and computed_data.get('rows'):
                                     "Defensive Work Rate, Finishing Efficiency, Risk & Verticality, Dribbling Threat."
                                 )
                         else:
-                            st.warning(f"⚠️ No tactical profile data available for {player_name}. Player may not have sufficient data for analysis.")
-                    
+                            st.warning(f"⚠️ No tactical profile data available for {player_name}.")
+            
                     with tab2:
                         # Performance profile only for strikers
                         if position_group == "striker":

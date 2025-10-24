@@ -41,6 +41,9 @@ def render_tactical_profile_radar(
     elif position_group == "attacking_mid_winger":
         from core.profiles.loader import TacticalProfileLoader
         loader = TacticalProfileLoader(artifacts_dir="data/processed/attacking_midfielders_wingers_artifacts")
+    elif position_group == "center_back":
+        from core.profiles.loader import TacticalProfileLoader
+        loader = TacticalProfileLoader(artifacts_dir="data/processed/center_back_artifacts")
     else:
         loader = get_loader()
     

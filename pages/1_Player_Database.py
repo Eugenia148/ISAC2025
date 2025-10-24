@@ -1,9 +1,9 @@
 # 2_Player_Database.py
 
 """
-🧩 Player Database – Liga MX 2024/25
+🧩 Player Database – Liga MX
 Displays player-level attributes if available.
-Falls back to team-level data when player stats are not provided by the API.
+Tactical profiles are available for any outfield players with at least 500 minutes played in the selected season.
 """
 
 # ===== IMPORTS & PAGE CONFIG =====
@@ -449,7 +449,7 @@ if computed_data is not None and computed_data.get('rows'):
                         }
                     }
                     # Navigate to comparison page
-                    st.switch_page("pages/3_Compare_Players.py")
+                    st.switch_page("pages/2_Compare_Players.py")
             
             # Show tactical profile if available
             # Show tactical profile if available

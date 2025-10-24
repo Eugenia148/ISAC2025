@@ -1,6 +1,6 @@
 """
-Scatter Plots Page - Interactive Player Analysis
-Displays interactive scatter plots of players using real data from Hudl/StatsBomb API.
+Scatter Plots Page - Interactive Player Discovery
+Discover unique combinations of player skillsets.
 """
 
 # ===== IMPORTS & PAGE CONFIG =====

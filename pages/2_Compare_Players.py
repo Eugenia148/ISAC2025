@@ -398,7 +398,7 @@ st.caption("Side-by-side comparison of tactical profiles")
 col_btn1, col_btn2 = st.columns([1, 3])
 with col_btn1:
     if st.button("← Back to Player Database"):
-        st.switch_page("pages/2_Player_Database.py")
+        st.switch_page("pages/1_Player_Database.py")
 with col_btn2:
     if 'compare_player_1' in st.session_state or 'compare_player_2' in st.session_state:
         if st.button("🔄 Clear All Selections", type="secondary"):

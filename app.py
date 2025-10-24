@@ -1,6 +1,6 @@
 """
-Streamlit Home Page - ISAC2025 Player Analysis
-Find players that fit Club América and justify why — fast.
+ISAC2025 Scouting Tool
+Player profiling and recruitment intelligence for Club América
 """
 
 # ===== IMPORTS & PAGE CONFIG =====
@@ -9,7 +9,7 @@ from api.client import client
 
 # Page configuration
 st.set_page_config(
-    page_title="ISAC2025 Player Analysis",
+    page_title="Ojos Diamantes Scouting Tool",
     page_icon="⚽",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -38,66 +38,111 @@ def home_get_status(api_client):
 
 # ===== UI (STREAMLIT ONLY BELOW) =====
 
-# Main title and subtitle
-st.title("⚽ ISAC2025 Player Analysis")
-st.markdown("**Find players that fit Club América and justify why — fast.**")
+# Hero Section
+st.title("Ojos Diamantes Scouting Tool")
+st.markdown("### Player profiling and recruitment intelligence for Club América")
+st.markdown("""
+Discover, analyze, and compare Liga MX tactical profiles and evolution of players
+to help Club América identify players for their system.
+""")
 
-# Status section
-st.markdown("---")
-st.subheader("📊 System Status")
-
+# Status indicator
 status = home_get_status(client)
 if status and status.get('ok'):
     st.success(f"🟢 {status['message']}")
 else:
-    st.warning("🟡 **no data available**")
+    st.warning("🟡 **Limited data available** - Some features may be restricted")
 
-# Navigation section
 st.markdown("---")
-st.subheader("🚀 Quick Navigation")
 
-col1, col2 = st.columns(2)
+# Key Features Section
+st.subheader("Application Features")
+
+# Create three columns for feature cards
+col1, col2, col3 = st.columns(3, gap="large")
 
 with col1:
-    if st.button("📋 All Teams", use_container_width=True, type="primary"):
-        st.switch_page("pages/1_All_Teams.py")
+    st.markdown("""
+    ### 🧩 Player Database
+    
+    **Browse and analyze Liga MX players**
+    
+    • Quickly understand their tactical profiles  
+    • Identify their strengths and weaknesses  
+    • View most similar players by style  
+    • Investigate season-to-season player evolution  
+    """)
+    
+    if st.button("🔍 Explore Players", use_container_width=True, type="primary"):
+        st.switch_page("pages/1_Player_Database.py")
 
 with col2:
-    if st.button("➕ Add a New Feature", use_container_width=True):
-        st.markdown("---")
-        st.markdown("### 📚 How to Add New Features")
-        st.markdown("""
-        **Quick Tutorial for Non-Coders & AI Agents:**
-        
-        1. **Copy** `pages/_TEMPLATE_Feature.py` and rename it (e.g., `2_Player_Finder.py`)
-        2. **Streamlit sorts pages by the leading number** in the filename
-        3. **Fill in the BUSINESS LOGIC block** - fetch data and compute results (no Streamlit!)
-        4. **Fill in the UI block** - render inputs and display results
-        5. **If data is missing**, return `None` from business logic → UI shows **"no data available"**
-        6. **Commit & push** - that's it!
-        
-        See `README_STREAMLIT.md` for detailed instructions.
-        """)
+    st.markdown("""
+    ### ⚖️ Compare Players
+    
+    **Side-by-side tactical analysis**
+    
+    • Quickly compare tactical profiles between players  
+    • Multiple view modes (Z-score, percentiles)  
+    • Cross-season comparison  
+    • Similarity analysis  
+    """)
+    
+    if st.button("⚖️ Compare Now", use_container_width=True, type="primary"):
+        st.switch_page("pages/2_Compare_Players.py")
 
-# How to use section
+with col3:
+    st.markdown("""
+    ### 📊 Scatter Plots
+    
+    **Interactive data visualization**
+    
+    • Discover unique combinations of player skillsets  
+    • 40+ metrics from StatsBomb API  
+    • Customizable axes and filters  
+    • Export options (CSV, PNG)  
+    """)
+    
+    if st.button("📈 Create Plots", use_container_width=True, type="primary"):
+        st.switch_page("pages/3_Scatter_Plots.py")
+
 st.markdown("---")
-st.subheader("📖 How to Use This App")
 
-st.markdown("""
-1. **Navigate** via the left sidebar or the buttons above
-2. **Each feature** is a separate page under `/pages/`
-3. **If data is missing**, you'll see **"no data available"**
-
-### 🎯 Current Features
-- **All Teams**: View all Liga MX teams with season statistics
-- **Add New Features**: Copy the template and follow the pattern
-
-### 🔧 Configuration
-- API credentials loaded from `.env` file
-- If missing/invalid, the app runs but shows "no data available" where needed
-- Check `README_STREAMLIT.md` for detailed setup instructions
-""")
+# Methodology Section (Expandable)
+with st.expander("📖 Methodology & Technical Details", expanded=False):
+    st.markdown("""
+    ### Data Source & Processing
+    
+    **Data Source**: StatsBomb API (Hudl) - Liga MX (Competition ID 73)
+    
+    **Coverage**: 4 seasons (2021/22, 2022/23, 2023/24, 2024/25)
+    
+    **Player Filter**: Minimum 500 minutes per season for tactical profiles, PCA and GMM clustering
+    
+    ### Analysis Methods
+    
+    **Tactical Profiles**:
+    - PCA-based dimensionality reduction from 70+ raw metrics
+    - Z-score normalization for cross-season comparison
+    - L2-normalized style vectors for similarity analysis
+    
+    **Role Classification for Centre Forwards**:
+    - Gaussian Mixture Model (GMM) clustering on PCA components
+    - 3 striker roles: Poacher, Pressing Striker, Link-Up Striker
+    - Confidence threshold: <60% = Hybrid classification
+    
+    **Similarity Analysis**:
+    - Cosine distance for striker role comparison
+    - Euclidean distance for tactical profile similarity
+    - Multi-season player-season nodes
+    
+    **Position Groups**:
+    - Strikers: 6 PCA dimensions → 3 roles
+    - Deep Progression Unit: 7 tactical dimensions
+    - Attacking Midfielders & Wingers: 7 ability axes
+    - Center Backs: 6 defensive dimensions
+    """)
 
 # Footer
 st.markdown("---")
-st.markdown("*Built with Streamlit • ISAC2025 Project*")
+st.markdown("*Built for ISAC2025 • Data via StatsBomb API (Hudl) • Player Analysis for Club América*")

@@ -499,28 +499,6 @@ if computed_data is not None and computed_data.get('rows'):
                             age=age
                         )
             
-                        # =========================
-                        # 📊 BLOCK FOR DEFENDERS
-                        # =========================
-                        if position_group == "center_back":
-                            profile = {
-                                "player_name": player_name,
-                                "team_name": team_name,
-                                "PC1": row["PC1"],
-                                "PC2": row["PC2"],
-                                "PC3": row["PC3"],
-                                "PC4": row["PC4"],
-                                "PC5": row["PC5"],
-                                "PC6": row["PC6"],
-                                "stats": {
-                                    "minutes": minutes,
-                                    "appearances": appearances,
-                                    "goals": goals,
-                                    "assists": assists,
-                                    "foot": foot,
-                                    "age": age
-                                }
-                            }
                         
                         # Add role data for strikers
                         if position_group == "striker" and profile:

@@ -53,6 +53,13 @@ class TacticalProfileService:
             'Centre Attacking Midfielder',
             'Left Attacking Midfielder'
         }
+        
+        # Center Back position mappings
+        self.center_back_positions = {
+            'Centre Back',
+            'Left Centre Back',
+            'Right Centre Back'
+        }
     
     def is_striker(self, primary_position: str, secondary_position: Optional[str] = None) -> bool:
         """Check if a player is a striker based on position."""
@@ -68,6 +75,11 @@ class TacticalProfileService:
         return (primary_position in self.attacking_mid_winger_positions or 
                 (secondary_position and secondary_position in self.attacking_mid_winger_positions))
     
+    def is_center_back(self, primary_position: str, secondary_position: Optional[str] = None) -> bool:
+        """Check if a player is a Center Back based on position."""
+        return (primary_position in self.center_back_positions or 
+                (secondary_position and secondary_position in self.center_back_positions))
+    
     def get_position_group(self, primary_position: str, secondary_position: Optional[str] = None) -> Optional[str]:
         """Determine which position group a player belongs to."""
         if self.is_striker(primary_position, secondary_position):
@@ -76,6 +88,8 @@ class TacticalProfileService:
             return "deep_progression"
         elif self.is_attacking_mid_winger(primary_position, secondary_position):
             return "attacking_mid_winger"
+        elif self.is_center_back(primary_position, secondary_position):
+            return "center_back"
         return None
     
     def build_striker_profile(
@@ -318,6 +332,114 @@ class TacticalProfileService:
         
         return profile
     
+    def build_center_back_profile(
+        self, 
+        player_id: str, 
+        player_name: str = None,
+        team_name: str = None,
+        primary_position: str = None,
+        secondary_position: str = None,
+        season: str = "2024/25",
+        # Additional stats
+        minutes: int = 0,
+        appearances: int = 0,
+        goals: int = 0,
+        assists: int = 0,
+        foot: str = "—",
+        age: str = "—"
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Build a center back tactical profile payload.
+        
+        Args:
+            player_id: Player ID
+            player_name: Player name
+            team_name: Team name
+            primary_position: Primary position
+            secondary_position: Secondary position
+            season: Season string (e.g., "2024/25")
+            minutes: Minutes played
+            appearances: Appearances
+            goals: Goals scored
+            assists: Assists made
+            foot: Preferred foot
+            age: Player age
+            
+        Returns:
+            Profile payload dict or None if player not found
+        """
+        # Extract season ID for data lookup
+        season_id = self._extract_season_id(season)
+        if not season_id:
+            return None
+        
+        # Create center back loader with correct artifacts directory
+        from .loader import TacticalProfileLoader
+        center_back_loader = TacticalProfileLoader("data/processed/center_back_artifacts")
+        
+        # Get ability scores
+        ability_scores = center_back_loader.get_player_ability_scores(player_id, season_id)
+        if not ability_scores:
+            return None
+        
+        # Get percentiles
+        percentiles = center_back_loader.get_player_percentiles(player_id, season_id)
+        if not percentiles:
+            return None
+        
+        # Get league reference
+        league_reference = center_back_loader.get_league_reference()
+        if not league_reference:
+            return None
+        
+        # Get axis ranges
+        axis_ranges = center_back_loader.get_axis_ranges()
+        if not axis_ranges:
+            return None
+        
+        # Get axes definitions
+        axes = center_back_loader.get_axes()
+        if not axes:
+            return None
+        
+        # Build profile payload
+        profile = {
+            "player_id": player_id,
+            "player_name": player_name or f"Player {player_id}",
+            "team_name": team_name or "Unknown Team",
+            "position": self._format_position(primary_position, secondary_position),
+            "season": season,
+            "ability_scores": ability_scores,
+            "percentiles": percentiles,
+            "league_reference": league_reference,
+            "axis_ranges": axis_ranges,
+            "axes": [
+                {
+                    "key": axis.key,
+                    "label": axis.label,
+                    "description": axis.description,
+                    "pca_loadings": axis.pca_loadings
+                }
+                for axis in axes
+            ],
+            "stats": {
+                "minutes": minutes,
+                "appearances": appearances,
+                "goals": goals,
+                "assists": assists,
+                "foot": foot,
+                "age": age
+            },
+            "meta": {
+                "data_version": "v1",
+                "computed_at": "2025-01-23",
+                "is_center_back": True,
+                "position_group": "center_back"
+            }
+        }
+        
+        return profile
+    
     def build_profile(
         self,
         player_id: str,
@@ -376,6 +498,23 @@ class TacticalProfileService:
         # Try Attacking Midfielders & Wingers
         if self.is_attacking_mid_winger(primary_position, secondary_position):
             return self.build_attacking_mid_winger_profile(
+                player_id=player_id,
+                player_name=player_name,
+                team_name=team_name,
+                primary_position=primary_position,
+                secondary_position=secondary_position,
+                season=season,
+                minutes=minutes,
+                appearances=appearances,
+                goals=goals,
+                assists=assists,
+                foot=foot,
+                age=age
+            )
+        
+        # Try Center Backs
+        if self.is_center_back(primary_position, secondary_position):
+            return self.build_center_back_profile(
                 player_id=player_id,
                 player_name=player_name,
                 team_name=team_name,

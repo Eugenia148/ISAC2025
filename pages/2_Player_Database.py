@@ -581,14 +581,15 @@ if computed_data is not None and computed_data.get('rows'):
                             st.write("View the Tactical Profile tab for detailed analysis of their 7-dimensional ability profile.")
                     
                     # Show similar players in expandable section
-                    if position_group in ["striker", "deep_progression", "attacking_mid_winger"]:
+                    if position_group in ["striker", "deep_progression", "attacking_mid_winger", "center_back"]:
                         st.markdown("---")
                         
                         # Dynamic title and labels
                         group_labels = {
                             "striker": "Strikers",
                             "deep_progression": "Deep Progression Players",
-                            "attacking_mid_winger": "Attacking Midfielders & Wingers"
+                            "attacking_mid_winger": "Attacking Midfielders & Wingers",
+                            "center_back": "Center Backs"
                         }
                         title = f"⭐ Most Similar {group_labels[position_group]} (all seasons)"
                         
@@ -660,7 +661,8 @@ if computed_data is not None and computed_data.get('rows'):
                                             }
                                         )
                                         
-                                        n_dimensions = 7
+                                        # Center backs have 6 dimensions, others have 7
+                                        n_dimensions = 6 if position_group == "center_back" else 7
                                         st.caption(
                                             f"Style similarity based on {n_dimensions}D L2-normalized ability vectors "
                                             f"(Euclidean distance). Span across all seasons in dataset."
@@ -668,7 +670,7 @@ if computed_data is not None and computed_data.get('rows'):
                                     else:
                                         st.warning(f"No similar players found for {player_name}.")
                 else:
-                    st.info(f"ℹ️ Tactical profiles are available for Strikers, Deep Progression Unit players (Full-backs & Midfielders), and Attacking Midfielders & Wingers. {player_name} plays as {primary_position}, which is not currently supported.")
+                    st.info(f"ℹ️ Tactical profiles are available for Strikers, Deep Progression Unit players (Full-backs & Midfielders), Attacking Midfielders & Wingers, and Center Backs. {player_name} plays as {primary_position}, which is not currently supported.")
     else:
         st.warning("No players match the current filters.")
 

@@ -118,6 +118,12 @@ def load_center_back_data():
     # Map PC columns to ability names
     ability_scores = df[pc_columns].copy()
     ability_scores.columns = ability_columns
+    
+    # Add metadata columns for player info lookup
+    ability_scores['player_name'] = df['player_name']
+    ability_scores['team_name'] = df['team_name'] 
+    ability_scores['primary_position'] = df['primary_position']
+    
     ability_scores.index = df['player_season_id']
     ability_scores.index.name = 'player_season_id'
     
@@ -130,9 +136,17 @@ def calculate_percentiles(ability_scores):
     """Calculate percentile rankings for each ability."""
     print("Calculating percentiles...")
     
-    percentiles = ability_scores.copy()
+    # Calculate percentiles only for ability columns (not metadata)
+    ability_columns = [axis['key'] for axis in CENTER_BACK_AXES]
+    percentiles = ability_scores[ability_columns].copy()
+    
     for col in percentiles.columns:
         percentiles[col] = percentiles[col].rank(pct=True) * 100
+    
+    # Add metadata columns back
+    percentiles['player_name'] = ability_scores['player_name']
+    percentiles['team_name'] = ability_scores['team_name']
+    percentiles['primary_position'] = ability_scores['primary_position']
     
     return percentiles
 
@@ -140,10 +154,22 @@ def calculate_l2_normalized(ability_scores):
     """Calculate L2-normalized ability scores."""
     print("Calculating L2-normalized scores...")
     
+    # L2 normalize only ability columns (not metadata)
+    ability_columns = [axis['key'] for axis in CENTER_BACK_AXES]
+    ability_data = ability_scores[ability_columns].values
+    
     # L2 normalize each row (player)
-    l2_scores = ability_scores.copy()
-    l2_values = normalize(ability_scores.values, norm='l2')
-    l2_scores.iloc[:, :] = l2_values
+    l2_normalized = normalize(ability_data, norm='l2')
+    
+    # Create DataFrame
+    l2_scores = pd.DataFrame(l2_normalized, 
+                             columns=ability_columns,
+                             index=ability_scores.index)
+    
+    # Add metadata columns back
+    l2_scores['player_name'] = ability_scores['player_name']
+    l2_scores['team_name'] = ability_scores['team_name']
+    l2_scores['primary_position'] = ability_scores['primary_position']
     
     return l2_scores
 
@@ -151,10 +177,22 @@ def calculate_zscore_normalized(ability_scores):
     """Calculate Z-score normalized ability scores."""
     print("Calculating Z-score normalized scores...")
     
+    # Z-score normalize only ability columns (not metadata)
+    ability_columns = [axis['key'] for axis in CENTER_BACK_AXES]
+    ability_data = ability_scores[ability_columns].values
+    
     scaler = StandardScaler()
-    zscore_values = scaler.fit_transform(ability_scores.values)
-    zscore_scores = ability_scores.copy()
-    zscore_scores.iloc[:, :] = zscore_values
+    zscore_values = scaler.fit_transform(ability_data)
+    
+    # Create DataFrame
+    zscore_scores = pd.DataFrame(zscore_values, 
+                                 columns=ability_columns,
+                                 index=ability_scores.index)
+    
+    # Add metadata columns back
+    zscore_scores['player_name'] = ability_scores['player_name']
+    zscore_scores['team_name'] = ability_scores['team_name']
+    zscore_scores['primary_position'] = ability_scores['primary_position']
     
     return zscore_scores
 
@@ -163,7 +201,10 @@ def create_axis_ranges(ability_scores):
     print("Creating axis ranges...")
     
     axis_ranges = {}
-    for col in ability_scores.columns:
+    # Only calculate ranges for ability columns (not metadata)
+    ability_columns = [axis['key'] for axis in CENTER_BACK_AXES]
+    
+    for col in ability_columns:
         axis_ranges[col] = {
             "min": float(ability_scores[col].min()),
             "max": float(ability_scores[col].max())

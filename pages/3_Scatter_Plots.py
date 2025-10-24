@@ -364,8 +364,7 @@ def feature_filter_data(df, positions, min_minutes):
 
 def feature_create_scatter_plot(df, x_var, y_var, color_var, colorscale, show_labels):
     """
-    Create interactive scatter plot using Plotly.
-    
+    Discover unique combinations of player skillsets.    
     Returns:
         plotly.graph_objects.Figure: Interactive scatter plot
     """
@@ -431,7 +430,7 @@ def feature_create_scatter_plot(df, x_var, y_var, color_var, colorscale, show_la
 
 # ===== UI (STREAMLIT BELOW) =====
 st.title("📊 Scatter Plots - Player Analysis")
-st.markdown("Interactive scatter plots of players using real data from Hudl/StatsBomb API")
+st.markdown("Discover unique combinations of player skillsets.")
 
 # Season selection
 st.markdown("---")

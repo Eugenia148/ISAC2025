@@ -692,6 +692,9 @@ class TacticalProfileService:
         elif position_group == "attacking_mid_winger":
             from .loader import TacticalProfileLoader
             loader = TacticalProfileLoader("data/processed/attacking_midfielders_wingers_artifacts")
+        elif position_group == "center_back":
+            from .loader import TacticalProfileLoader
+            loader = TacticalProfileLoader("data/processed/center_back_artifacts")
         else:
             return []
         
@@ -711,7 +714,7 @@ class TacticalProfileService:
             # For non-striker position groups, also load z-score and L2 data
             ability_scores_zscore = {}
             ability_scores_l2 = {}
-            if position_group in ["deep_progression", "attacking_mid_winger"]:
+            if position_group in ["deep_progression", "attacking_mid_winger", "center_back"]:
                 ability_scores_zscore = loader.get_ability_scores_zscore(player_id, season_id)
                 ability_scores_l2 = loader.get_ability_scores_l2(player_id, season_id)
             

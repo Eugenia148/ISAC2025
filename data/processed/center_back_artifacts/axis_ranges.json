@@ -1,17 +1,17 @@
 {
-  "Defensive_Aggression": {
+  "Build_Up_Distribution": {
     "min": -0.92979188439551,
     "max": 0.9678294240740336
   },
-  "Aerial_Dominance": {
+  "Defensive_Actions": {
     "min": -0.8296681980101915,
     "max": 0.9088482385201954
   },
-  "Build_Up_Play": {
+  "Aerial_Dominance": {
     "min": -0.8480249275424073,
     "max": 0.8926507968042546
   },
-  "Positioning_Clearances": {
+  "Aerial_Clearances": {
     "min": -0.8010242215377874,
     "max": 0.9253098865275938
   },
@@ -19,7 +19,7 @@
     "min": -0.7616140464774792,
     "max": 0.8107341279022781
   },
-  "Ball_Retention": {
+  "Shot_Blocking_Retention": {
     "min": -0.6469054044544684,
     "max": 0.8534224186688312
   }

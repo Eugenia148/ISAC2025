@@ -21,66 +21,66 @@ SEASON_MAPPING = {
     "2024/2025": 317
 }
 
-# Center back ability axes based on PCA analysis
+# Center back ability axes based on ACTUAL PCA loadings analysis
 CENTER_BACK_AXES = [
     {
-        "key": "Defensive_Aggression",
-        "label": "Defensive Aggression",
-        "description": "Tackling, interceptions, and defensive actions per 90 minutes",
+        "key": "Build_Up_Distribution",
+        "label": "Build-Up & Distribution",
+        "description": "Open play passes, xG buildup, and ball progression",
         "pca_loadings": {
-            "PC1": "+0.439 (tackles)",
-            "PC2": "+0.216 (interceptions)",
-            "PC3": "+0.187 (defensive actions)"
+            "PC1": "+0.466 (op_passes_90)",
+            "PC1": "+0.388 (xgbuildup_90)", 
+            "PC1": "+0.394 (op_xgbuildup_90)"
+        }
+    },
+    {
+        "key": "Defensive_Actions",
+        "label": "Defensive Actions",
+        "description": "Interceptions, tackles, and defensive actions per 90",
+        "pca_loadings": {
+            "PC2": "+0.479 (interceptions_90)",
+            "PC2": "+0.558 (padj_interceptions_90)",
+            "PC2": "+0.282 (tackles_90)"
         }
     },
     {
         "key": "Aerial_Dominance",
-        "label": "Aerial Dominance", 
+        "label": "Aerial Dominance",
         "description": "Aerial duels won and aerial success rate",
         "pca_loadings": {
-            "PC1": "+0.220 (aerial wins)",
-            "PC2": "+0.330 (aerial ratio)",
-            "PC3": "+0.187 (aerial dominance)"
+            "PC3": "+0.471 (aerial_wins_90)",
+            "PC3": "+0.233 (aerial_ratio)",
+            "PC3": "+0.260 (interceptions_90)"
         }
     },
     {
-        "key": "Build_Up_Play",
-        "label": "Build-Up Play",
-        "description": "Passing accuracy, xG buildup, and ball progression",
+        "key": "Aerial_Clearances",
+        "label": "Aerial & Clearances",
+        "description": "Aerial duels, clearances, and defensive actions",
         "pca_loadings": {
-            "PC1": "+0.187 (passing)",
-            "PC2": "+0.330 (xG buildup)",
-            "PC3": "+0.521 (progression)"
-        }
-    },
-    {
-        "key": "Positioning_Clearances",
-        "label": "Positioning & Clearances",
-        "description": "Defensive positioning, blocks, and clearances",
-        "pca_loadings": {
-            "PC1": "+0.172 (blocks)",
-            "PC2": "+0.156 (clearances)",
-            "PC3": "+0.124 (positioning)"
+            "PC4": "+0.435 (aerial_wins_90)",
+            "PC4": "+0.423 (clearance_90)",
+            "PC4": "+0.352 (defensive_actions_90)"
         }
     },
     {
         "key": "Progressive_Passing",
         "label": "Progressive Passing",
-        "description": "Forward passes, long balls, and progressive distribution",
+        "description": "Forward passes, long balls, and xG buildup",
         "pca_loadings": {
-            "PC1": "-0.061 (forward passes)",
-            "PC2": "+0.279 (long balls)",
-            "PC3": "+0.055 (progression)"
+            "PC5": "+0.427 (forward_pass_proportion)",
+            "PC5": "+0.456 (long_ball_ratio)",
+            "PC5": "+0.435 (op_xgbuildup_90)"
         }
     },
     {
-        "key": "Ball_Retention",
-        "label": "Ball Retention",
-        "description": "Sideways and backward passes for ball retention",
+        "key": "Shot_Blocking_Retention",
+        "label": "Shot Blocking & Retention",
+        "description": "Shot blocking and ball retention passing",
         "pca_loadings": {
-            "PC1": "-0.232 (retention)",
-            "PC2": "+0.157 (sideways passes)",
-            "PC3": "+0.125 (backward passes)"
+            "PC6": "+0.823 (blocks_per_shot)",
+            "PC6": "+0.247 (backward_pass_proportion)",
+            "PC6": "+0.073 (defensive_actions_90)"
         }
     }
 ]

@@ -12,6 +12,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import normalize
+from sklearn.metrics.pairwise import euclidean_distances
 
 # Season name to ID mapping
 SEASON_MAPPING = {
@@ -180,6 +181,63 @@ def create_league_reference():
     
     return league_reference
 
+def generate_neighbors_file(l2_scores, output_dir, top_k=10):
+    """Generate player_neighbors.parquet for similar players functionality."""
+    print("Generating neighbors file...")
+    
+    # Extract ability columns (not PC columns)
+    ability_cols = [axis['key'] for axis in CENTER_BACK_AXES]
+    vectors = l2_scores[ability_cols].values
+    player_season_ids = l2_scores.index.tolist()
+    
+    print(f"Computing Euclidean distances for {len(player_season_ids)} players...")
+    
+    # Compute pairwise Euclidean distance
+    distance_matrix = euclidean_distances(vectors)
+    
+    # Build neighbor records
+    neighbor_records = []
+    
+    for i, anchor_id in enumerate(player_season_ids):
+        # Get distances to all other players
+        distances = distance_matrix[i]
+        
+        # Create list of (distance, player_id) pairs
+        distance_pairs = [(dist, player_season_ids[j]) for j, dist in enumerate(distances)]
+        
+        # Sort by distance (ascending) and take top_k+1 (including self)
+        distance_pairs.sort(key=lambda x: x[0])
+        top_neighbors = distance_pairs[1:top_k+1]  # Exclude self (distance=0)
+        
+        # Add neighbor records
+        for rank, (distance, neighbor_id) in enumerate(top_neighbors, 1):
+            # Convert distance to similarity (0-1)
+            # Euclidean distance on L2-normalized vectors ranges from 0 to ~2
+            # Convert to similarity: similarity = (2 - distance) / 2
+            max_distance = 2.0  # Approximate max for L2-normalized vectors
+            similarity = max(0, (max_distance - distance) / max_distance)
+            similarity = round(similarity, 3)  # Round to 3 decimal places
+            
+            neighbor_records.append({
+                'anchor_player_season_id': anchor_id,
+                'neighbor_player_season_id': neighbor_id,
+                'euclidean_distance': distance,
+                'similarity': similarity,
+                'rank': rank
+            })
+    
+    # Create DataFrame
+    neighbors_df = pd.DataFrame(neighbor_records)
+    
+    # Save to parquet
+    neighbors_path = os.path.join(output_dir, "player_neighbors.parquet")
+    neighbors_df.to_parquet(neighbors_path, index=False)
+    
+    print(f"✅ Generated {len(neighbors_df)} neighbor records for {len(player_season_ids)} players")
+    print(f"✅ Saved to: {neighbors_path}")
+    
+    return neighbors_df
+
 def save_artifacts(ability_scores, percentiles, l2_scores, zscore_scores, 
                   axis_ranges, league_reference, output_dir):
     """Save all artifacts to the output directory."""
@@ -193,6 +251,9 @@ def save_artifacts(ability_scores, percentiles, l2_scores, zscore_scores,
     percentiles.to_parquet(os.path.join(output_dir, "ability_percentiles.parquet"))
     l2_scores.to_parquet(os.path.join(output_dir, "ability_scores_l2.parquet"))
     zscore_scores.to_parquet(os.path.join(output_dir, "ability_scores_zscore.parquet"))
+    
+    # Generate and save neighbors file
+    generate_neighbors_file(l2_scores, output_dir)
     
     # Save JSON files
     with open(os.path.join(output_dir, "ability_axes.json"), 'w') as f:

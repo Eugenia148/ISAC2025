@@ -602,6 +602,10 @@ class TacticalProfileService:
             from .loader import TacticalProfileLoader
             loader = TacticalProfileLoader("data/processed/attacking_midfielders_wingers_artifacts")
             self._current_artifacts_dir = "data/processed/attacking_midfielders_wingers_artifacts"
+        elif position_group == "center_back":
+            from .loader import TacticalProfileLoader
+            loader = TacticalProfileLoader("data/processed/center_back_artifacts")
+            self._current_artifacts_dir = "data/processed/center_back_artifacts"
         else:
             return []
         

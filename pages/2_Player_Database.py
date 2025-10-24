@@ -432,10 +432,24 @@ if computed_data is not None and computed_data.get('rows'):
             
             with col2:
                 if st.button("⚖️ Compare Players", type="secondary"):
-                    # Store player_id in session state for navigation
-                    st.session_state['compare_player_id'] = player_id
-                    st.session_state['compare_player_name'] = player_name
-                    st.info("🚧 Player Compare page coming soon! Player ID stored in session state.")
+                    # Store player 1 data in session state
+                    st.session_state['compare_player_1'] = {
+                        'player_id': player_id,
+                        'player_name': player_name,
+                        'team_name': team_name,
+                        'position': position,
+                        'season': selected_season,
+                        'stats': {
+                            'minutes': minutes,
+                            'appearances': appearances,
+                            'goals': goals,
+                            'assists': assists,
+                            'foot': foot,
+                            'age': age
+                        }
+                    }
+                    # Navigate to comparison page
+                    st.switch_page("pages/3_Compare_Players.py")
             
             # Show tactical profile if available
             # Show tactical profile if available
@@ -444,28 +458,15 @@ if computed_data is not None and computed_data.get('rows'):
             
                 # Get tactical profile service
                 service = get_service()
-            
+                
                 # Parse position
                 primary_position = position.split(' / ')[0] if position else None
                 secondary_position = position.split(' / ')[1] if ' / ' in position else None
-            
-                # ===== Detectar tipo de jugador manualmente =====
-                striker_positions = {
-                    "Centre Forward", "Left Centre Forward", "Right Centre Forward"
-                }
-                defender_positions = {
-                    "Centre Back", "Left Centre Back", "Right Centre Back"
-                }
-            
-                if primary_position in striker_positions or secondary_position in striker_positions:
-                    position_group = "striker"
-                elif primary_position in defender_positions or secondary_position in defender_positions:
-                    position_group = "defender"
-                else:
-                    position_group = None
-            
-                # ====== STRIKERS (ya existente, no tocar) ======
-                if position_group == "striker":
+                
+                # Determine position group
+                position_group = service.get_position_group(primary_position, secondary_position)
+                
+                if position_group:
                     # Extract season ID for role service
                     season_id_map = {
                         "2024/25": 317,
@@ -474,14 +475,16 @@ if computed_data is not None and computed_data.get('rows'):
                         "2021/22": 108
                     }
                     season_id = season_id_map.get(selected_season, 317)
-            
-                    tab1, tab2 = st.tabs(["🎯 Tactical Profile", "📊 Performance Profile"])
-            
+                    
+                    # Create tabs (Performance Profile only for strikers)
+                    if position_group == "striker":
+                        tab1, tab2 = st.tabs(["🎯 Tactical Profile", "📊 Performance Profile"])
+                    else:
+                        tab1, tab2 = st.tabs(["🎯 Tactical Profile", "📊 Info"])
+                    
                     with tab1:
-                        role_service = get_role_service()
-                        role_data = role_service.get_player_role(player_id, season_id)
-            
-                        profile = service.build_striker_profile(
+                        # Build unified profile (automatically detects position group)
+                        profile = service.build_profile(
                             player_id=str(player_id),
                             player_name=player_name,
                             team_name=team_name,
@@ -519,219 +522,155 @@ if computed_data is not None and computed_data.get('rows'):
                                 }
                             }
                         
-                            # Draw the radar chart for defenders
-                            render_tactical_profile_panel(profile)
+                        # Add role data for strikers
+                        if position_group == "striker" and profile:
+                            role_service = get_role_service()
+                            role_data = role_service.get_player_role(player_id, season_id)
+                            if role_data:
+                                profile['role_data'] = role_data
                         
-                            # Add interpretation text below
-                            st.markdown("---")
-                            st.markdown("### 📘 Interpretation of Principal Components (PCs)")
-                        
-                            st.markdown("""
-                            - ⚙️ **PC1 – Build-Up & Ball Progression**  
-                              Represents the involvement of the center-back in buildup play and ball progression.  
-                              High values = comfort in possession, passing participation, and offensive contribution.
-                        
-                            - 🛡️ **PC2 – Defensive Interventions & Aggressiveness**  
-                              Captures defensive activity and aggressiveness in duels and anticipation.
-                        
-                            - 🪂 **PC3 – Defensive Duels & Aerial Engagement**  
-                              Measures duel intensity and aerial strength. High values = 1v1 dominance and aerial defense.
-                        
-                            - 🧱 **PC4 – Defensive Solidity & Clearances**  
-                              Reflects reactive defensive style. High values = frequent clearances and blocks.
-                        
-                            - 📈 **PC5 – Distribution Style & Direction**  
-                              Indicates type and direction of passes from the back. Differentiates safe vs. vertical distributors.
-                        
-                            - 🧍 **PC6 – Defensive Coverage & Risk Management**  
-                              Evaluates the balance between defensive security and offensive involvement.
-                              High values = solid coverage and low-risk play.
-                            """)
-
-                        if profile and role_data:
-                            profile['role_data'] = role_data
-            
                         if profile:
+                            # Render tactical profile panel (works for both strikers and Deep Progression)
                             render_tactical_profile_panel(profile)
+                            
+                            # Add info about position group
+                            if position_group == "deep_progression":
+                                st.caption(
+                                    "📝 **Note:** Percentiles relative to Liga MX Deep Progression Unit players (Full-backs & Midfielders), all seasons. "
+                                    "Data computed from PCA analysis (7 tactical dimensions)."
+                                )
+                            elif position_group == "attacking_mid_winger":
+                                st.caption(
+                                    "📝 **Note:** Percentiles relative to Liga MX Attacking Midfielders & Wingers, all seasons. "
+                                    "Data computed from PCA analysis (7 tactical dimensions): Chance Creation, Ball Progression, Width & Crossing, "
+                                    "Defensive Work Rate, Finishing Efficiency, Risk & Verticality, Dribbling Threat."
+                                )
                         else:
                             st.warning(f"⚠️ No tactical profile data available for {player_name}.")
             
                     with tab2:
-                        performance_service = get_performance_service()
-                        season_id_perf = performance_service._extract_season_id(selected_season)
-                        performance_service = get_performance_service(season_id=season_id_perf)
-            
-                        performance_profile = performance_service.build_performance_profile(
-                            player_id=str(player_id),
-                            player_name=player_name,
-                            team_name=team_name,
-                            primary_position=primary_position,
-                            secondary_position=secondary_position,
-                            season=selected_season,
-                            minutes=minutes
-                        )
-            
-                        if performance_profile:
-                            render_performance_profile_panel(performance_profile)
-                        else:
-                            st.warning(f"⚠️ No performance profile data available for {player_name}.")
-            
-                    st.markdown("---")
-                    with st.expander("⭐ Most Similar Strikers (all seasons)"):
-                        player_id_int = int(player_id) if player_id else None
-                        if player_id_int:
-                            similar_players = role_service.get_similar_players(player_id_int, season_id, k=5)
-                        else:
-                            similar_players = []
-            
-                        if similar_players:
-                            season_id_to_display = {317: "24/25", 281: "23/24", 235: "22/23", 108: "21/22"}
-                            table_data = []
-                            for neighbor in similar_players:
-                                neighbor_name = neighbor.get("player_name", f"Player {neighbor['player_id']}")
-                                neighbor_role = neighbor.get("role", "Unknown")
-                                neighbor_season_id = neighbor.get("season_id", 317)
-                                neighbor_season = season_id_to_display.get(neighbor_season_id, str(neighbor_season_id))
-                                similarity = neighbor.get("similarity", 0)
-                                table_data.append({
-                                    "Player": neighbor_name,
-                                    "Season": neighbor_season,
-                                    "Role": neighbor_role,
-                                    "Similarity": f"{similarity*100:.0f}%"
-                                })
-                            import pandas as pd
-                            df_similar = pd.DataFrame(table_data)
-                            st.dataframe(df_similar, use_container_width=True, hide_index=True)
-                            st.caption("Similarity scores are cosine similarity (0-100%) on 6D playing style vectors.")
-                        else:
-                            st.warning(f"No similar strikers found for {player_name}.")
-            
-                # ====== DEFENDERS (new block) ======
-                elif position_group == "defender":
-                    tab1, tab2 = st.tabs(["🛡️ Tactical Profile", "📊 Info"])
-
-                    with tab1:
-                        import pandas as pd
-                        import plotly.graph_objects as go
-                        from pathlib import Path
-                
-                        # === Load defender profile data ===
-                        csv_path = Path(__file__).resolve().parents[1] / "core" / "data" / "defenders_profiles.csv"
-                        if not csv_path.exists():
-                            st.warning("⚠️ defenders_profiles.csv not found. Generate the file from the defenders notebook.")
-                        else:
-                            df = pd.read_csv(csv_path)
-                            match = df.loc[df["player_name"].str.lower() == player_name.lower()]
-                
-                            if match.empty:
-                                st.warning(f"⚠️ {player_name} not found in defenders_profiles.csv.")
+                        # Performance profile only for strikers
+                        if position_group == "striker":
+                            # Get performance profile service with season-specific loader
+                            performance_service = get_performance_service()
+                            season_id_perf = performance_service._extract_season_id(selected_season)
+                            
+                            # Re-initialize service with season-specific loader
+                            performance_service = get_performance_service(season_id=season_id_perf)
+                            
+                            # Build performance profile for the selected season
+                            performance_profile = performance_service.build_performance_profile(
+                                player_id=str(player_id),
+                                player_name=player_name,
+                                team_name=team_name,
+                                primary_position=primary_position,
+                                secondary_position=secondary_position,
+                                season=selected_season,
+                                minutes=minutes
+                            )
+                            
+                            if performance_profile:
+                                # Render performance profile panel
+                                render_performance_profile_panel(performance_profile)
                             else:
-                                row = match.iloc[0]
-                
-                            # Build standardized profile for layout
-                                profile = {
-                                    "player_name": player_name,
-                                    "team_name": team_name,
-                                    "position": "Centre Back",
-                                    "season": selected_season,
-                                    "stats": {
-                                        "minutes": minutes,
-                                        "appearances": appearances,
-                                        "goals": goals,
-                                        "assists": assists,
-                                        "foot": foot,
-                                        "age": age
-                                    }
-                                }
-                
-                            # === Render same layout cards (Team, Position, Stats...) ===
-                                render_tactical_profile_panel(profile)
-                
-                            # === Defensive radar (PC1–PC6) ===
-                                pc_values = [
-                                    float(row["PC1"]),
-                                    float(row["PC2"]),
-                                    float(row["PC3"]),
-                                    float(row["PC4"]),
-                                    float(row["PC5"]),
-                                    float(row["PC6"])
-                                ]
-                                pc_labels = [
-                                    "Build-Up & Ball Progression",
-                                    "Defensive Interventions & Aggressiveness",
-                                    "Defensive Duels & Aerial Engagement",
-                                    "Defensive Solidity & Clearances",
-                                    "Distribution Style & Direction",
-                                    "Defensive Coverage & Risk Management"
-                                ]
-
-                
-                            # Close loop
-                                pc_values += [pc_values[0]]
-                                pc_labels += [pc_labels[0]]
+                                st.warning(f"⚠️ No performance profile data available for {player_name}. Player may not have sufficient data for analysis.")
+                        else:
+                            # Non-striker info tab
+                            st.info("📊 Performance Profile is currently only available for strikers.")
+                            st.write(f"**{player_name}** plays as **{position}** - part of the Deep Progression Unit.")
+                            st.write("View the Tactical Profile tab for detailed analysis of their 7-dimensional ability profile.")
                     
-                                fig = go.Figure()
-                                fig.add_trace(go.Scatterpolar(
-                                    r=pc_values,
-                                    theta=pc_labels,
-                                    fill="toself",
-                                    name=player_name,
-                                    line_color="#1f77b4",
-                                    fillcolor="rgba(31, 119, 180, 0.3)"
-                                ))
-                    
-                                fig.update_layout(
-                                    polar=dict(
-                                        radialaxis=dict(visible=True, range=[0, 1], gridcolor="gray", gridwidth=0.5),
-                                        angularaxis=dict(tickfont=dict(size=12))
-                                    ),
-                                    showlegend=True,
-                                    template="plotly_dark",
-                                    width=600,
-                                    height=600,
-                                    margin=dict(l=40, r=40, t=40, b=40)
-                                )
-                    
-                                st.markdown(f"### 🛡️ Defensive Style — {player_name} (PC1–PC6)")
-                                st.plotly_chart(fig, use_container_width=True)
-                    
-                                # === Interpretation text ===
-                                st.markdown("---")
-                                st.markdown("### 📘 Interpretation of Principal Components (PCs)")
-                                st.markdown("""
-**⚙️ PC1 – Build-Up & Ball Progression**  
-Represents the center-back’s involvement in buildup play and ball progression.  
-High values = comfort in possession, active participation in passing sequences, and offensive contribution.  
-
-**🛡️ PC2 – Defensive Interventions & Aggressiveness**  
-Captures defensive activity and aggressiveness.  
-High values = proactive defenders who intercept passes and win duels.  
-
-**🪂 PC3 – Defensive Duels & Aerial Engagement**  
-Measures duel intensity, especially in aerial challenges.  
-High values = dominant center-backs in 1v1 and aerial play.  
-
-**🧱 PC4 – Defensive Solidity & Clearances**  
-Reflects a reactive, safety-first defensive style prioritizing clearances and blocks.  
-High values = low-block or safety-oriented defenders.  
-
-**📈 PC5 – Distribution Style & Direction**  
-Describes the type and direction of passing.  
-Differentiates between safe lateral passers and vertical distributors.  
-
-**🧍 PC6 – Defensive Coverage & Risk Management**  
-Represents the balance between defensive security and ball progression.  
-High values = solid defensive coverage and low-risk decision-making.
-            """)
-
-
-                    with tab2:
-                        st.info("📊 Performance Profile only available for strikers.")
-                        st.write(f"**{player_name}** plays as **{position}** – Defensive Unit.")
-
+                    # Show similar players in expandable section
+                    if position_group in ["striker", "deep_progression", "attacking_mid_winger"]:
+                        st.markdown("---")
+                        
+                        # Dynamic title and labels
+                        group_labels = {
+                            "striker": "Strikers",
+                            "deep_progression": "Deep Progression Players",
+                            "attacking_mid_winger": "Attacking Midfielders & Wingers"
+                        }
+                        title = f"⭐ Most Similar {group_labels[position_group]} (all seasons)"
+                        
+                        with st.expander(title):
+                            # Ensure player_id is available
+                            if not player_id:
+                                st.warning("Player ID not available")
+                            else:
+                                if position_group == "striker":
+                                    # Use role service (includes role column, uses cosine similarity)
+                                    player_id_int = int(player_id) if player_id else None
+                                    if player_id_int:
+                                        similar_players = role_service.get_similar_players(player_id_int, season_id, k=5)
+                                    else:
+                                        similar_players = []
+                                    
+                                    if similar_players:
+                                        # Table with Role column
+                                        table_data = []
+                                        season_id_to_display = {317: "24/25", 281: "23/24", 235: "22/23", 108: "21/22"}
+                                        
+                                        for neighbor in similar_players:
+                                            table_data.append({
+                                                "Player": neighbor.get("player_name", f"Player {neighbor['player_id']}"),
+                                                "Season": season_id_to_display.get(neighbor.get("season_id", 317), ""),
+                                                "Role": neighbor.get("role", "Unknown"),
+                                                "Similarity": f"{neighbor.get('similarity', 0)}%"
+                                            })
+                                        
+                                        df_similar = pd.DataFrame(table_data)
+                                        st.dataframe(df_similar, use_container_width=True, hide_index=True)
+                                        st.caption("Similarity based on 6D playing style vectors (cosine similarity).")
+                                    else:
+                                        st.warning(f"No similar strikers found for {player_name}.")
+                                
+                                else:
+                                    # Use profile service (no role column, uses Euclidean distance)
+                                    # Construct player_season_id from player_id and season_id
+                                    player_season_id = f"{player_id}_{season_id}"
+                                    similar_players = service.get_similar_players(
+                                        player_season_id=player_season_id,
+                                        position_group=position_group,
+                                        k=5
+                                    )
+                                    
+                                    if similar_players:
+                                        # Table with Player, Team, Position, Season, Similarity columns
+                                        table_data = []
+                                        for neighbor in similar_players:
+                                            table_data.append({
+                                                "Player": neighbor.get("player_name", neighbor.get("player_season_id")),
+                                                "Team": neighbor.get("team", "—"),
+                                                "Position": neighbor.get("position", "—"),
+                                                "Season": neighbor.get("season", ""),
+                                                "Similarity": f"{neighbor.get('similarity', 0)}%"
+                                            })
+                                        
+                                        df_similar = pd.DataFrame(table_data)
+                                        st.dataframe(
+                                            df_similar,
+                                            use_container_width=True,
+                                            hide_index=True,
+                                            column_config={
+                                                "Player": st.column_config.TextColumn("Player"),
+                                                "Team": st.column_config.TextColumn("Team"),
+                                                "Position": st.column_config.TextColumn("Position"),
+                                                "Season": st.column_config.TextColumn("Season"),
+                                                "Similarity": st.column_config.TextColumn("Similarity")
+                                            }
+                                        )
+                                        
+                                        n_dimensions = 7
+                                        st.caption(
+                                            f"Style similarity based on {n_dimensions}D L2-normalized ability vectors "
+                                            f"(Euclidean distance). Span across all seasons in dataset."
+                                        )
+                                    else:
+                                        st.warning(f"No similar players found for {player_name}.")
                 else:
-                    st.info(f"ℹ️ Tactical profiles are currently only available for Strikers and Center Backs. {player_name} plays as {primary_position}.")
-
+                    st.info(f"ℹ️ Tactical profiles are available for Strikers, Deep Progression Unit players (Full-backs & Midfielders), and Attacking Midfielders & Wingers. {player_name} plays as {primary_position}, which is not currently supported.")
+    else:
+        st.warning("No players match the current filters.")
 
 else:
     st.error("❌ No data available")

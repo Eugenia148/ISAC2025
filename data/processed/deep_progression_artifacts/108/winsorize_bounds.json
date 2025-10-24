@@ -1,0 +1,342 @@
+{
+  "player_season_passing_ratio": {
+    "lower": 0.6631679026286049,
+    "upper": 0.8858216123842343
+  },
+  "player_season_pass_length": {
+    "lower": 16.53195668798217,
+    "upper": 26.940430128273483
+  },
+  "player_season_pass_length_ratio": {
+    "lower": 0.858625304,
+    "upper": 1.0010783090000002
+  },
+  "player_season_long_ball_ratio": {
+    "lower": 0.3350658350658351,
+    "upper": 0.8308600663716815
+  },
+  "player_season_long_balls_90": {
+    "lower": 0.8602522617,
+    "upper": 7.198948594000001
+  },
+  "player_season_deep_progressions_90": {
+    "lower": 1.477103826,
+    "upper": 7.295030034000009
+  },
+  "player_season_op_passes_90": {
+    "lower": 18.44646003,
+    "upper": 48.80153107
+  },
+  "player_season_op_passes_into_box_90": {
+    "lower": 0.0,
+    "upper": 2.042524937
+  },
+  "player_season_passes_into_box_90": {
+    "lower": 0.0,
+    "upper": 2.678517234000002
+  },
+  "player_season_xgbuildup_90": {
+    "lower": 0.12172918245,
+    "upper": 0.6657283165000002
+  },
+  "player_season_xgchain_90": {
+    "lower": 0.1623618227,
+    "upper": 0.8517829045000005
+  },
+  "player_season_lbp_90": {
+    "lower": 2.504256618,
+    "upper": 11.026959780000004
+  },
+  "player_season_lbp_completed_90": {
+    "lower": 1.361564059,
+    "upper": 7.274163650000009
+  },
+  "player_season_lbp_ratio": {
+    "lower": 0.3516379293,
+    "upper": 0.7557538466000001
+  },
+  "player_season_fhalf_lbp_90": {
+    "lower": 1.000244455,
+    "upper": 6.408993765000002
+  },
+  "player_season_f3_lbp_90": {
+    "lower": 0.1016415482,
+    "upper": 3.7425339930000043
+  },
+  "player_season_obv_lbp_90": {
+    "lower": 0.002893173882,
+    "upper": 0.11266412636000003
+  },
+  "player_season_forward_pass_proportion": {
+    "lower": 0.12074975577987626,
+    "upper": 0.42277930225641547
+  },
+  "player_season_sideways_pass_proportion": {
+    "lower": 0.5125880105223969,
+    "upper": 0.7769709198387118
+  },
+  "player_season_backward_pass_proportion": {
+    "lower": 0.027054067617047376,
+    "upper": 0.17804052724768843
+  },
+  "player_season_pressured_passing_ratio": {
+    "lower": 0.5239294554455446,
+    "upper": 0.8686977886977889
+  },
+  "player_season_passes_pressed_ratio": {
+    "lower": 0.08606297168178356,
+    "upper": 0.2569160321053715
+  },
+  "player_season_change_in_passing_ratio": {
+    "lower": -0.2176912118,
+    "upper": 0.08240056054000026
+  },
+  "player_season_p_pass_length": {
+    "lower": 13.179173803329467,
+    "upper": 24.041002845764165
+  },
+  "player_season_pressured_change_in_pass_length": {
+    "lower": -6.905588795,
+    "upper": 2.6837018390000034
+  },
+  "player_season_obv_pass_90": {
+    "lower": -0.054039533,
+    "upper": 0.21894381100000002
+  },
+  "player_season_xa_90": {
+    "lower": 0.0,
+    "upper": 0.26306848380000003
+  },
+  "player_season_op_xa_90": {
+    "lower": 0.0,
+    "upper": 0.24056689350000007
+  },
+  "player_season_sp_xa_90": {
+    "lower": 0.0,
+    "upper": 0.0869879087600001
+  },
+  "player_season_carries_90": {
+    "lower": 17.087448589999997,
+    "upper": 45.012504740000026
+  },
+  "player_season_carry_length": {
+    "lower": 3.047703897,
+    "upper": 7.442166857000002
+  },
+  "player_season_carry_ratio": {
+    "lower": 0.772325206,
+    "upper": 0.9872464377
+  },
+  "player_season_dribbles_90": {
+    "lower": 0.0,
+    "upper": 2.4075295390000018
+  },
+  "player_season_dribble_ratio": {
+    "lower": 0.15800000000000003,
+    "upper": 0.889767429000001
+  },
+  "player_season_failed_dribbles_90": {
+    "lower": 0.0,
+    "upper": 1.9407164510000006
+  },
+  "player_season_turnovers_90": {
+    "lower": 0.2072318166,
+    "upper": 4.385580065000001
+  },
+  "player_season_dispossessions_90": {
+    "lower": 0.084413396,
+    "upper": 2.33436821
+  },
+  "player_season_obv_dribble_carry_90": {
+    "lower": -0.0012756414379999992,
+    "upper": 0.10767630405000002
+  },
+  "player_season_positive_outcome_score": {
+    "lower": 0.1335690309,
+    "upper": 0.5117552019000001
+  },
+  "player_season_positive_outcome_90": {
+    "lower": 1.662403345,
+    "upper": 8.081101720000001
+  },
+  "player_season_key_passes_90": {
+    "lower": 0.0,
+    "upper": 2.4901604520000022
+  },
+  "player_season_op_key_passes_90": {
+    "lower": 0.0,
+    "upper": 1.8068396830000015
+  },
+  "player_season_sp_key_passes_90": {
+    "lower": 0.0,
+    "upper": 1.0962901330000023
+  },
+  "player_season_shots_key_passes_90": {
+    "lower": 0.2072242483,
+    "upper": 4.1595642600000025
+  },
+  "player_season_np_xg_90": {
+    "lower": 0.0007294104365,
+    "upper": 0.19179331550000006
+  },
+  "player_season_np_xg_per_shot": {
+    "lower": 0.013253835076466203,
+    "upper": 0.17645464987085602
+  },
+  "player_season_npg_90": {
+    "lower": 0.0,
+    "upper": 0.3099438920000001
+  },
+  "player_season_conversion_ratio": {
+    "lower": 0.0,
+    "upper": 0.3473333333333338
+  },
+  "player_season_touches_inside_box_90": {
+    "lower": 0.0438293659,
+    "upper": 3.774050223000001
+  },
+  "player_season_crosses_90": {
+    "lower": 0.0,
+    "upper": 1.4290548690000013
+  },
+  "player_season_crossing_ratio": {
+    "lower": 0.0,
+    "upper": 0.8683333333333347
+  },
+  "player_season_box_cross_ratio": {
+    "lower": 0.0,
+    "upper": 0.9210000000000008
+  },
+  "player_season_sp_passes_into_box_90": {
+    "lower": 0.0,
+    "upper": 1.6528106350000022
+  },
+  "player_season_obv_shot_90": {
+    "lower": -0.0630879745,
+    "upper": 0.11268025335000005
+  },
+  "player_season_obv_90": {
+    "lower": -0.0296557987,
+    "upper": 0.30441265630000014
+  },
+  "player_season_over_under_performance_90": {
+    "lower": -0.2134217156,
+    "upper": 0.19305366960000023
+  },
+  "player_season_tackles_90": {
+    "lower": 0.6872663616,
+    "upper": 3.6880187750000006
+  },
+  "player_season_interceptions_90": {
+    "lower": 0.5876588083000001,
+    "upper": 3.480741302
+  },
+  "player_season_aggressive_actions_90": {
+    "lower": 3.818167309,
+    "upper": 15.502658570000014
+  },
+  "player_season_pressures_90": {
+    "lower": 7.451141958,
+    "upper": 23.628515750000005
+  },
+  "player_season_padj_pressures_90": {
+    "lower": 6.805791976,
+    "upper": 22.78809053
+  },
+  "player_season_pressure_regains_90": {
+    "lower": 1.252533258,
+    "upper": 4.593874396000001
+  },
+  "player_season_fhalf_pressures_90": {
+    "lower": 1.080802902,
+    "upper": 12.091409710000004
+  },
+  "player_season_fhalf_pressures_ratio": {
+    "lower": 0.1053649369,
+    "upper": 0.6453668074000002
+  },
+  "player_season_ball_recoveries_90": {
+    "lower": 4.7462816,
+    "upper": 11.698519750000003
+  },
+  "player_season_fhalf_ball_recoveries_90": {
+    "lower": 0.9695076825000001,
+    "upper": 5.569366944000004
+  },
+  "player_season_challenge_ratio": {
+    "lower": 0.40328431372549023,
+    "upper": 0.8057437275985663
+  },
+  "player_season_dribble_faced_ratio": {
+    "lower": 0.14149351289999998,
+    "upper": 0.75
+  },
+  "player_season_dribbled_past_90": {
+    "lower": 0.318738852,
+    "upper": 1.9705618720000007
+  },
+  "player_season_average_x_defensive_action": {
+    "lower": 25.02093678,
+    "upper": 54.71651138000003
+  },
+  "player_season_average_x_pressure": {
+    "lower": 28.47682751,
+    "upper": 56.658212500000026
+  },
+  "player_season_aerial_ratio": {
+    "lower": 0.15384615384615385,
+    "upper": 0.7234996938150645
+  },
+  "player_season_aerial_wins_90": {
+    "lower": 0.204660475,
+    "upper": 3.6091873880000014
+  },
+  "player_season_fouls_90": {
+    "lower": 0.35648001570000004,
+    "upper": 2.7096212700000017
+  },
+  "player_season_fouls_won_90": {
+    "lower": 0.13509535739999998,
+    "upper": 2.8549840450000006
+  },
+  "player_season_yellow_cards_90": {
+    "lower": 0.0,
+    "upper": 0.5093330752
+  },
+  "player_season_second_yellow_cards_90": {
+    "lower": 0.0,
+    "upper": 0.057209678640000004
+  },
+  "player_season_red_cards_90": {
+    "lower": 0.0,
+    "upper": 0.09354463216000007
+  },
+  "player_season_average_space_received_in": {
+    "lower": 4.602482812,
+    "upper": 12.989495630000004
+  },
+  "player_season_fhalf_ball_receipts_in_space_2_ratio": {
+    "lower": 0.7649740806,
+    "upper": 1.0
+  },
+  "player_season_f3_ball_receipts_in_space_2_ratio": {
+    "lower": 0.6404384505999999,
+    "upper": 1.0
+  },
+  "player_season_lbp_received_90": {
+    "lower": 0.0476786488,
+    "upper": 8.23436609
+  },
+  "player_season_fhalf_lbp_received_90": {
+    "lower": 0.0,
+    "upper": 6.2766291510000025
+  },
+  "player_season_f3_lbp_received_90": {
+    "lower": 0.0,
+    "upper": 3.165358410000002
+  },
+  "player_season_lbp_to_space_5_received_90": {
+    "lower": 0.0,
+    "upper": 2.615697217
+  }
+}

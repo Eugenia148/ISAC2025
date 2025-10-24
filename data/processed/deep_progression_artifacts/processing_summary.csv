@@ -1,0 +1,5 @@
+season_id,season_name,status,error
+108,2021/2022,error,'charmap' codec can't encode character '\u2265' in position 400: character maps to <undefined>
+235,2022/2023,error,'charmap' codec can't encode character '\u2265' in position 400: character maps to <undefined>
+281,2023/2024,error,'charmap' codec can't encode character '\u2265' in position 400: character maps to <undefined>
+317,2024/2025,error,'charmap' codec can't encode character '\u2265' in position 400: character maps to <undefined>

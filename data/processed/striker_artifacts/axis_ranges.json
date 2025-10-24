@@ -1,0 +1,26 @@
+{
+  "Progressive_Play": {
+    "min": 0.0,
+    "max": 1.0000000000000002
+  },
+  "Finishing_BoxPresence": {
+    "min": 0.0,
+    "max": 0.9999999999999999
+  },
+  "Pressing_WorkRate": {
+    "min": 0.0,
+    "max": 0.9999999999999999
+  },
+  "Finishing_Efficiency": {
+    "min": 0.0,
+    "max": 1.0
+  },
+  "Dribbling_RiskTaking": {
+    "min": 0.0,
+    "max": 0.9999999999999998
+  },
+  "DecisionMaking_Balance": {
+    "min": 0.0,
+    "max": 0.9999999999999999
+  }
+}

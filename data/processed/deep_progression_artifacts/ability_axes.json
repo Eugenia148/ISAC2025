@@ -1,0 +1,38 @@
+[
+  {
+    "key": "PC1",
+    "label": "Final Third Influence",
+    "description": "Offensive output, shot creation, and attacking presence in dangerous areas"
+  },
+  {
+    "key": "PC2",
+    "label": "Pass Security",
+    "description": "Passing accuracy, completion rate, and reliability in possession"
+  },
+  {
+    "key": "PC3",
+    "label": "Deep Progression",
+    "description": "Progressive passing, line-breaking passes, and advancing the ball forward"
+  },
+  {
+    "key": "PC4",
+    "label": "Aggressiveness",
+    "description": "Pressing, tackles, interceptions, and defensive work rate"
+  },
+  {
+    "key": "PC5",
+    "label": "Attacking Output",
+    "description": "Goals, assists, key passes, and direct offensive contributions"
+  },
+  {
+    "key": "PC6",
+    "label": "Defensive Duel Efficiency",
+    "description": "Success rate in defensive duels, challenges, and 1v1 situations"
+  },
+  {
+    "key": "PC7",
+    "label": "Carrying & Dribbling",
+    "description": "Ball carrying, dribbling success, and progression through individual actions"
+  }
+]
+

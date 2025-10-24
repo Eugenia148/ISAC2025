@@ -1,0 +1,12 @@
+{
+  "player_season_defensive_action_90": "Missing from data",
+  "player_season_xgbuildup_90": "Correlated with player_season_xgchain_90 (r=0.936)",
+  "player_season_lbp_90": "Correlated with player_season_lbp_completed_90 (r=0.900)",
+  "player_season_xa_90": "Correlated with player_season_op_xa_90 (r=0.931)",
+  "player_season_op_passes_90": "Correlated with player_season_carries_90 (r=0.910)",
+  "player_season_sp_xa_90": "Correlated with player_season_sp_key_passes_90 (r=0.941)",
+  "player_season_aggressive_actions_90": "Correlated with player_season_pressures_90 (r=0.923)",
+  "player_season_fhalf_pressures_ratio": "Correlated with player_season_average_x_pressure (r=0.949)",
+  "player_season_average_x_defensive_action": "Correlated with player_season_average_x_pressure (r=0.966)",
+  "player_season_lbp_received_90": "Correlated with player_season_fhalf_lbp_received_90 (r=0.922)"
+}

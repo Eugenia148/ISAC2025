@@ -1,0 +1,15 @@
+{
+  "timestamp": "2025-10-22T21:04:07.595726",
+  "cohort": "Deep Progression Unit (All Seasons Combined)",
+  "k": 6,
+  "random_state": 42,
+  "l2_normalized": true,
+  "input_file": "pca_scores_player_season.csv",
+  "n_observations": 604,
+  "seasons": [
+    108,
+    235,
+    281,
+    317
+  ]
+}

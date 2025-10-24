@@ -1,0 +1,18 @@
+{
+  "features": [
+    "player_season_np_xg_90",
+    "player_season_touches_inside_box_90",
+    "player_season_shot_on_target_ratio",
+    "player_season_xa_90",
+    "player_season_key_passes_90",
+    "player_season_passing_ratio",
+    "player_season_pressures_90",
+    "player_season_pressure_regains_90",
+    "player_season_tackles_and_interceptions_90",
+    "player_season_dribbles_90",
+    "player_season_carries_90",
+    "player_season_carry_length",
+    "player_season_dispossessions_90",
+    "player_season_obv_90"
+  ]
+}

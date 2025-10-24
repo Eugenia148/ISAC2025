@@ -1,0 +1,21 @@
+{
+  "cohort": "Deep Progression Unit (All Seasons Combined)",
+  "n_observations": 604,
+  "n_dimensions": 7,
+  "normalization": "L2 (row-wise)",
+  "tested_k": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "best_bic_k": 3,
+  "best_aic_k": 10,
+  "covariance_type": "full",
+  "random_state": 42
+}

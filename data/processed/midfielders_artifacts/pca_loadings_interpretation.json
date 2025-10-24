@@ -1,0 +1,494 @@
+{
+  "PC1": {
+    "variance_explained": 0.22467606465574508,
+    "cumulative_variance": 0.22467606465574508,
+    "top_positive_loadings": [
+      {
+        "feature": "player_season_shots_key_passes_90",
+        "loading": 0.21739482177041455
+      },
+      {
+        "feature": "player_season_key_passes_90",
+        "loading": 0.20714465193833737
+      },
+      {
+        "feature": "player_season_f3_lbp_90",
+        "loading": 0.20680216581230668
+      },
+      {
+        "feature": "player_season_passes_into_box_90",
+        "loading": 0.20422579325321982
+      },
+      {
+        "feature": "player_season_op_passes_into_box_90",
+        "loading": 0.20232012631947183
+      },
+      {
+        "feature": "player_season_op_key_passes_90",
+        "loading": 0.19702304498967568
+      },
+      {
+        "feature": "player_season_turnovers_90",
+        "loading": 0.1891958503200234
+      },
+      {
+        "feature": "player_season_crosses_90",
+        "loading": 0.18154232786048405
+      },
+      {
+        "feature": "player_season_average_x_pressure",
+        "loading": 0.1810148269488183
+      },
+      {
+        "feature": "player_season_dispossessions_90",
+        "loading": 0.1795925773933058
+      }
+    ],
+    "top_negative_loadings": [
+      {
+        "feature": "player_season_carry_ratio",
+        "loading": -0.14945303363704196
+      }
+    ]
+  },
+  "PC2": {
+    "variance_explained": 0.1455624802120573,
+    "cumulative_variance": 0.3702385448678024,
+    "top_positive_loadings": [
+      {
+        "feature": "player_season_lbp_completed_90",
+        "loading": 0.2591724530832393
+      },
+      {
+        "feature": "player_season_long_balls_90",
+        "loading": 0.25075087987135397
+      },
+      {
+        "feature": "player_season_fhalf_ball_receipts_in_space_2_ratio",
+        "loading": 0.2292811760686073
+      },
+      {
+        "feature": "player_season_carries_90",
+        "loading": 0.2183920288765623
+      },
+      {
+        "feature": "player_season_deep_progressions_90",
+        "loading": 0.207220273328996
+      },
+      {
+        "feature": "player_season_f3_ball_receipts_in_space_2_ratio",
+        "loading": 0.1874792506512167
+      },
+      {
+        "feature": "player_season_obv_lbp_90",
+        "loading": 0.18555670265722046
+      },
+      {
+        "feature": "player_season_lbp_ratio",
+        "loading": 0.17950488528221278
+      },
+      {
+        "feature": "player_season_carry_ratio",
+        "loading": 0.17897567632652053
+      },
+      {
+        "feature": "player_season_average_space_received_in",
+        "loading": 0.1701642243635486
+      }
+    ],
+    "top_negative_loadings": [
+      {
+        "feature": "player_season_backward_pass_proportion",
+        "loading": -0.15259472447397074
+      },
+      {
+        "feature": "player_season_touches_inside_box_90",
+        "loading": -0.15212278915500793
+      }
+    ]
+  },
+  "PC3": {
+    "variance_explained": 0.07155111282727572,
+    "cumulative_variance": 0.4417896576950781,
+    "top_positive_loadings": [
+      {
+        "feature": "player_season_pressure_regains_90",
+        "loading": 0.33024620913794717
+      },
+      {
+        "feature": "player_season_pressures_90",
+        "loading": 0.3297492519357023
+      },
+      {
+        "feature": "player_season_aggressive_actions_90",
+        "loading": 0.3144538454428482
+      },
+      {
+        "feature": "player_season_padj_pressures_90",
+        "loading": 0.30277089444562943
+      },
+      {
+        "feature": "player_season_tackles_90",
+        "loading": 0.2669952859195566
+      },
+      {
+        "feature": "player_season_fhalf_pressures_90",
+        "loading": 0.23114224813147083
+      },
+      {
+        "feature": "player_season_pass_length_ratio",
+        "loading": 0.22149530988118443
+      },
+      {
+        "feature": "player_season_fouls_90",
+        "loading": 0.19049630223615363
+      },
+      {
+        "feature": "player_season_dribbled_past_90",
+        "loading": 0.1712144040121411
+      },
+      {
+        "feature": "player_season_fhalf_ball_recoveries_90",
+        "loading": 0.1696506576638047
+      }
+    ],
+    "top_negative_loadings": [
+      {
+        "feature": "player_season_sp_passes_into_box_90",
+        "loading": -0.15894640240526556
+      },
+      {
+        "feature": "player_season_pass_length",
+        "loading": -0.14668117879100484
+      },
+      {
+        "feature": "player_season_obv_pass_90",
+        "loading": -0.12979751464187303
+      },
+      {
+        "feature": "player_season_crosses_90",
+        "loading": -0.12399246957284005
+      },
+      {
+        "feature": "player_season_passes_into_box_90",
+        "loading": -0.11369329904200892
+      }
+    ]
+  },
+  "PC4": {
+    "variance_explained": 0.06522722473001681,
+    "cumulative_variance": 0.5070168824250949,
+    "top_positive_loadings": [
+      {
+        "feature": "player_season_forward_pass_proportion",
+        "loading": 0.32133264345373125
+      },
+      {
+        "feature": "player_season_pass_length",
+        "loading": 0.22221564265626575
+      },
+      {
+        "feature": "player_season_fouls_90",
+        "loading": 0.22128748801260342
+      },
+      {
+        "feature": "player_season_aerial_wins_90",
+        "loading": 0.21923711696306847
+      },
+      {
+        "feature": "player_season_aggressive_actions_90",
+        "loading": 0.19257882847525465
+      },
+      {
+        "feature": "player_season_obv_pass_90",
+        "loading": 0.1890431257233828
+      },
+      {
+        "feature": "player_season_tackles_90",
+        "loading": 0.18446585024331255
+      },
+      {
+        "feature": "player_season_ball_recoveries_90",
+        "loading": 0.15094681356289125
+      },
+      {
+        "feature": "player_season_pressures_90",
+        "loading": 0.14959785255470412
+      },
+      {
+        "feature": "player_season_dribbled_past_90",
+        "loading": 0.14175927991183856
+      }
+    ],
+    "top_negative_loadings": [
+      {
+        "feature": "player_season_passing_ratio",
+        "loading": -0.28124934005153207
+      },
+      {
+        "feature": "player_season_pressured_passing_ratio",
+        "loading": -0.22516635228852966
+      },
+      {
+        "feature": "player_season_pass_length_ratio",
+        "loading": -0.22448798806720005
+      },
+      {
+        "feature": "player_season_sideways_pass_proportion",
+        "loading": -0.22109054838350586
+      },
+      {
+        "feature": "player_season_long_ball_ratio",
+        "loading": -0.19929375462485097
+      },
+      {
+        "feature": "player_season_lbp_ratio",
+        "loading": -0.18436529897620219
+      },
+      {
+        "feature": "player_season_pressured_change_in_pass_length",
+        "loading": -0.16097040208736282
+      },
+      {
+        "feature": "player_season_backward_pass_proportion",
+        "loading": -0.15086576399219132
+      }
+    ]
+  },
+  "PC5": {
+    "variance_explained": 0.04192550530428514,
+    "cumulative_variance": 0.5489423877293801,
+    "top_positive_loadings": [
+      {
+        "feature": "player_season_conversion_ratio",
+        "loading": 0.40805815780314436
+      },
+      {
+        "feature": "player_season_npg_90",
+        "loading": 0.3405523146757682
+      },
+      {
+        "feature": "player_season_obv_shot_90",
+        "loading": 0.3128354367820069
+      },
+      {
+        "feature": "player_season_np_xg_per_shot",
+        "loading": 0.29824481977783546
+      },
+      {
+        "feature": "player_season_over_under_performance_90",
+        "loading": 0.2523412728518922
+      },
+      {
+        "feature": "player_season_challenge_ratio",
+        "loading": 0.22726803110610236
+      },
+      {
+        "feature": "player_season_obv_90",
+        "loading": 0.21399112867797696
+      },
+      {
+        "feature": "player_season_dribble_faced_ratio",
+        "loading": 0.2106548746342117
+      },
+      {
+        "feature": "player_season_np_xg_90",
+        "loading": 0.18436538400818375
+      },
+      {
+        "feature": "player_season_pressured_change_in_pass_length",
+        "loading": 0.12918968469307407
+      }
+    ],
+    "top_negative_loadings": [
+      {
+        "feature": "player_season_dribbled_past_90",
+        "loading": -0.1854906520369139
+      },
+      {
+        "feature": "player_season_box_cross_ratio",
+        "loading": -0.11831100135319601
+      },
+      {
+        "feature": "player_season_f3_ball_receipts_in_space_2_ratio",
+        "loading": -0.11481705290494354
+      },
+      {
+        "feature": "player_season_crossing_ratio",
+        "loading": -0.1112720999322219
+      },
+      {
+        "feature": "player_season_sp_passes_into_box_90",
+        "loading": -0.10327230562233053
+      }
+    ]
+  },
+  "PC6": {
+    "variance_explained": 0.03397373363833989,
+    "cumulative_variance": 0.58291612136772,
+    "top_positive_loadings": [
+      {
+        "feature": "player_season_challenge_ratio",
+        "loading": 0.27551836503309274
+      },
+      {
+        "feature": "player_season_obv_dribble_carry_90",
+        "loading": 0.25121926900777636
+      },
+      {
+        "feature": "player_season_carry_length",
+        "loading": 0.23997701312967473
+      },
+      {
+        "feature": "player_season_dribble_faced_ratio",
+        "loading": 0.22558657845075522
+      },
+      {
+        "feature": "player_season_fhalf_ball_recoveries_90",
+        "loading": 0.22510470289629467
+      },
+      {
+        "feature": "player_season_fouls_won_90",
+        "loading": 0.20839259152334896
+      },
+      {
+        "feature": "player_season_ball_recoveries_90",
+        "loading": 0.2030714235529684
+      },
+      {
+        "feature": "player_season_dribbles_90",
+        "loading": 0.2012415164326657
+      },
+      {
+        "feature": "player_season_dispossessions_90",
+        "loading": 0.2010880113995591
+      },
+      {
+        "feature": "player_season_failed_dribbles_90",
+        "loading": 0.1848875857370972
+      }
+    ],
+    "top_negative_loadings": [
+      {
+        "feature": "player_season_dribbled_past_90",
+        "loading": -0.23270819972137008
+      },
+      {
+        "feature": "player_season_np_xg_per_shot",
+        "loading": -0.1996586817343683
+      },
+      {
+        "feature": "player_season_padj_pressures_90",
+        "loading": -0.1938064695678536
+      },
+      {
+        "feature": "player_season_aggressive_actions_90",
+        "loading": -0.1772098451543849
+      },
+      {
+        "feature": "player_season_carry_ratio",
+        "loading": -0.1542246371560074
+      },
+      {
+        "feature": "player_season_pressures_90",
+        "loading": -0.15134372667036763
+      },
+      {
+        "feature": "player_season_sp_passes_into_box_90",
+        "loading": -0.13237398045346027
+      },
+      {
+        "feature": "player_season_fhalf_pressures_90",
+        "loading": -0.13152928082398102
+      }
+    ]
+  },
+  "PC7": {
+    "variance_explained": 0.031085167425363422,
+    "cumulative_variance": 0.6140012887930834,
+    "top_positive_loadings": [
+      {
+        "feature": "player_season_obv_shot_90",
+        "loading": 0.28428069048245225
+      },
+      {
+        "feature": "player_season_carry_length",
+        "loading": 0.25915767016481017
+      },
+      {
+        "feature": "player_season_conversion_ratio",
+        "loading": 0.2377273045115358
+      },
+      {
+        "feature": "player_season_over_under_performance_90",
+        "loading": 0.2064786837870345
+      },
+      {
+        "feature": "player_season_obv_90",
+        "loading": 0.1997630118684939
+      },
+      {
+        "feature": "player_season_dribbled_past_90",
+        "loading": 0.19661032476242982
+      },
+      {
+        "feature": "player_season_failed_dribbles_90",
+        "loading": 0.18898215571355542
+      },
+      {
+        "feature": "player_season_sideways_pass_proportion",
+        "loading": 0.18593642408448446
+      },
+      {
+        "feature": "player_season_npg_90",
+        "loading": 0.1775661918394406
+      },
+      {
+        "feature": "player_season_dribbles_90",
+        "loading": 0.16523768218613236
+      }
+    ],
+    "top_negative_loadings": [
+      {
+        "feature": "player_season_dribble_faced_ratio",
+        "loading": -0.2129449304831637
+      },
+      {
+        "feature": "player_season_challenge_ratio",
+        "loading": -0.20065352147045065
+      },
+      {
+        "feature": "player_season_touches_inside_box_90",
+        "loading": -0.18509875423095698
+      },
+      {
+        "feature": "player_season_aerial_ratio",
+        "loading": -0.15697401116057946
+      },
+      {
+        "feature": "player_season_aerial_wins_90",
+        "loading": -0.15501146277850827
+      },
+      {
+        "feature": "player_season_pressured_change_in_pass_length",
+        "loading": -0.15302561539404144
+      },
+      {
+        "feature": "player_season_xgchain_90",
+        "loading": -0.14722437890827272
+      },
+      {
+        "feature": "player_season_f3_lbp_received_90",
+        "loading": -0.14386815384748405
+      },
+      {
+        "feature": "player_season_fhalf_lbp_90",
+        "loading": -0.14080705659581114
+      },
+      {
+        "feature": "player_season_lbp_completed_90",
+        "loading": -0.14066197663241148
+      }
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "key": "Progressive_Play",
+    "label": "Progressive Play",
+    "description": "Ball progression & link play"
+  },
+  {
+    "key": "Finishing_BoxPresence",
+    "label": "Finishing & Box Presence",
+    "description": "Goal scoring and box positioning"
+  },
+  {
+    "key": "Pressing_WorkRate",
+    "label": "Pressing Work Rate",
+    "description": "Defensive pressure and work rate"
+  },
+  {
+    "key": "Finishing_Efficiency",
+    "label": "Finishing Efficiency",
+    "description": "Shot conversion and efficiency"
+  },
+  {
+    "key": "Dribbling_RiskTaking",
+    "label": "Dribbling & Risk-Taking",
+    "description": "Ball carrying and risk taking"
+  },
+  {
+    "key": "DecisionMaking_Balance",
+    "label": "Decision Making & Balance",
+    "description": "Decision making and balance"
+  }
+]

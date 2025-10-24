@@ -1,0 +1,55 @@
+[
+  {
+    "key": "finishing_output",
+    "label": "Finishing Output",
+    "description": "Goal scoring and finishing quality",
+    "metrics": [
+      "touches_box_90",
+      "np_xg_90",
+      "np_xg_per_shot",
+      "finishing_quality"
+    ]
+  },
+  {
+    "key": "chance_creation",
+    "label": "Chance Creation",
+    "description": "Creating scoring opportunities",
+    "metrics": [
+      "xa_90",
+      "key_passes_90",
+      "obv_pass_90",
+      "xa_per_shot_assist"
+    ]
+  },
+  {
+    "key": "ball_progression_link_play",
+    "label": "Ball Progression & Link Play",
+    "description": "Ball progression and link-up play",
+    "metrics": [
+      "deep_progressions_90",
+      "passing_ratio",
+      "dribble_ratio",
+      "obv_dribble_carry_90"
+    ]
+  },
+  {
+    "key": "defensive_work_rate",
+    "label": "Defensive Work Rate",
+    "description": "Defensive contributions and work rate",
+    "metrics": [
+      "defensive_actions_90",
+      "tackles_interceptions_90",
+      "aerial_ratio"
+    ]
+  },
+  {
+    "key": "overall_impact",
+    "label": "Overall Impact",
+    "description": "Overall performance and impact",
+    "metrics": [
+      "npxgxa_90",
+      "obv_90",
+      "positive_outcome_score"
+    ]
+  }
+]

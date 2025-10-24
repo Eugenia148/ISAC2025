@@ -271,8 +271,8 @@ def feature_filter_rows(
 
 
 # ===== UI (STREAMLIT BELOW) =====
-st.title("🧩 Player Database – Liga MX 2024/25")
-st.markdown("View all players and their attributes. If unavailable, team stats will be shown instead.")
+st.title("🧩 Player Database – Liga MX")
+st.markdown("Tactical profiles are available for any outfield players with at least 500 minutes played in the selected season.")
 
 # Season selection
 col1, col2 = st.columns([3, 1])

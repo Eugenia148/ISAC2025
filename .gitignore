@@ -6,7 +6,13 @@ __pycache__/
 .ipynb_checkpoints/
 
 # Datos o archivos grandes
-data/
+# Exclude raw data but keep processed artifacts
+data/raw/
+data/exports/
+data/__pycache__/
+
+# Include processed artifacts (explicitly comment for clarity)
+# data/processed/ will be tracked
 
 # Variables de entorno o credenciales
 .env

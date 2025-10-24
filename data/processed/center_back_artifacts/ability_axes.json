@@ -1,0 +1,62 @@
+[
+  {
+    "key": "Defensive_Aggression",
+    "label": "Defensive Aggression",
+    "description": "Tackling, interceptions, and defensive actions per 90 minutes",
+    "pca_loadings": {
+      "PC1": "+0.439 (tackles)",
+      "PC2": "+0.216 (interceptions)",
+      "PC3": "+0.187 (defensive actions)"
+    }
+  },
+  {
+    "key": "Aerial_Dominance",
+    "label": "Aerial Dominance",
+    "description": "Aerial duels won and aerial success rate",
+    "pca_loadings": {
+      "PC1": "+0.220 (aerial wins)",
+      "PC2": "+0.330 (aerial ratio)",
+      "PC3": "+0.187 (aerial dominance)"
+    }
+  },
+  {
+    "key": "Build_Up_Play",
+    "label": "Build-Up Play",
+    "description": "Passing accuracy, xG buildup, and ball progression",
+    "pca_loadings": {
+      "PC1": "+0.187 (passing)",
+      "PC2": "+0.330 (xG buildup)",
+      "PC3": "+0.521 (progression)"
+    }
+  },
+  {
+    "key": "Positioning_Clearances",
+    "label": "Positioning & Clearances",
+    "description": "Defensive positioning, blocks, and clearances",
+    "pca_loadings": {
+      "PC1": "+0.172 (blocks)",
+      "PC2": "+0.156 (clearances)",
+      "PC3": "+0.124 (positioning)"
+    }
+  },
+  {
+    "key": "Progressive_Passing",
+    "label": "Progressive Passing",
+    "description": "Forward passes, long balls, and progressive distribution",
+    "pca_loadings": {
+      "PC1": "-0.061 (forward passes)",
+      "PC2": "+0.279 (long balls)",
+      "PC3": "+0.055 (progression)"
+    }
+  },
+  {
+    "key": "Ball_Retention",
+    "label": "Ball Retention",
+    "description": "Sideways and backward passes for ball retention",
+    "pca_loadings": {
+      "PC1": "-0.232 (retention)",
+      "PC2": "+0.157 (sideways passes)",
+      "PC3": "+0.125 (backward passes)"
+    }
+  }
+]
